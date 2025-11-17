@@ -1,0 +1,7 @@
+# Production dependencies
+# Add your project dependencies here
+
+fastapi
+pydantic
+uvicorn
+
