@@ -57,3 +57,7 @@ def delete_device(device_id: int):
             del devices_db[index]
             return {"detail": "Device deleted"}
     raise HTTPException(status_code=404, detail="Device not found")
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run("sim_device_control.__main__:app", host="127.0.0.1", port=8000, reload=True)
