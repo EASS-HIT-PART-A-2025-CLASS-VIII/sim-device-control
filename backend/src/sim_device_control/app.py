@@ -23,12 +23,14 @@ def add_record(db, device_uuid: str = "", description: str = ""):
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
+
 # region general device operations
 
 @app.get("/devices/", response_model=List[SimDevice])
 def list_devices(db = Depends(get_db)):
     add_record(db, description = "Listed all devices")
     return db.get_devices()
+
 
 @app.post("/devices/", response_model=SimDevice)
 def create_device(device: SimDevice, db = Depends(get_db)):
@@ -40,6 +42,7 @@ def create_device(device: SimDevice, db = Depends(get_db)):
         raise HTTPException(status_code=400, detail=str(e))
     add_record(db, description = f"Successfully created device {device.uuid}")
     return device
+
 
 @app.get("/devices/{device_type}", response_model=List[SimDevice])
 def get_devices_by_type(device_type: DeviceType, db = Depends(get_db)):
@@ -54,6 +57,7 @@ def get_devices_by_type(device_type: DeviceType, db = Depends(get_db)):
     add_record(db, description = f"Found {len(match_devices)} devices of type {device_type}")
     return match_devices
 
+
 @app.put("/devices/{device_uuid}", response_model=SimDevice)
 def update_device(device_uuid: str, updated_device: SimDevice, db = Depends(get_db)):
     try:
@@ -64,6 +68,7 @@ def update_device(device_uuid: str, updated_device: SimDevice, db = Depends(get_
         raise HTTPException(status_code=404, detail=str(e))
     add_record(db, description = f"Successfully updated device {device_uuid}")
     return updated_device
+
 
 @app.delete("/devices/{device_uuid}")
 def delete_device(device_uuid: str, db = Depends(get_db)):
@@ -84,6 +89,7 @@ def list_logs(db = Depends(get_db)):
     add_record(db, description = "Listed all log records")
     return db.get_log()
 
+
 @app.get("/logs/filtered", response_model=List[LogRecord])
 def list_logs_by_time(start_time: datetime = "YYYY-MM-DDThh:mm:ss", end_time: datetime = "YYYY-MM-DDThh:mm:ss", db = Depends(get_db)):
     add_record(db, description = f"Listed log records from {start_time} to {end_time}")
@@ -92,6 +98,7 @@ def list_logs_by_time(start_time: datetime = "YYYY-MM-DDThh:mm:ss", end_time: da
         if start_time <= record.timestamp <= end_time:
             matched_logs.append(record)
     return matched_logs
+
 
 @app.post("/logs/", response_model=LogRecord)
 def create_entry(action: str, description: str, device_uuid: str = "", db = Depends(get_db)):
@@ -108,6 +115,5 @@ def create_entry(action: str, description: str, device_uuid: str = "", db = Depe
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     return record
-
 
 # endregion

@@ -1,7 +1,11 @@
 from pydantic import BaseModel
 from enum import Enum
 from datetime import datetime
+from pydantic import BaseModel
+from enum import Enum
+from datetime import datetime
 import uuid
+
 
 class DeviceType(Enum):
     TEMPERATURE_SENSOR = "temperature_sensor"
@@ -12,12 +16,14 @@ class DeviceType(Enum):
     DIGITAL_PORT = "digital_port"
     ANALOG_PORT = "analog_port"
 
+
 class SimDevice(BaseModel):
     uuid: str
     type: DeviceType
     name: str
     status: str
     description: str
+
 
 class LogRecord(BaseModel):
     uuid: uuid.UUID
