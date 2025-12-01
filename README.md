@@ -62,8 +62,8 @@ Docker
 Build and run the image (example):
 
 ```bash
-docker build -t sim-device-control:local .
-docker run --rm -p 8000:8000 sim-device-control:local
+docker build -t sim-device-control .
+docker run -p 8000:8000 sim-device-control
 ```
 
 Alternatively, you can run the `run-docker.sh` bash script:
