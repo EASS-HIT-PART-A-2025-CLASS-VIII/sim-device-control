@@ -1,12 +1,13 @@
 import pytest
 from fastapi.testclient import TestClient
-from sim_device_control import db, schemas
+from sim_device_control import schemas
 from sim_device_control.app import app
+from sim_device_control.drivers import db
 
 client = TestClient(app)
 
 # override get_db dependency to use the shared fake session
-from sim_device_control.db import get_db
+from sim_device_control.drivers.db import get_db
 app.dependency_overrides[get_db] = lambda: db.fake_db_session
 
 

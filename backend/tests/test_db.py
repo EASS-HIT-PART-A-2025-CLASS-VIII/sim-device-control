@@ -2,7 +2,8 @@ import pytest
 from datetime import datetime
 import uuid
 
-from sim_device_control import db, schemas
+from sim_device_control import schemas
+from sim_device_control.drivers import db
 
 @pytest.fixture(autouse = True)
 def clear_tables():

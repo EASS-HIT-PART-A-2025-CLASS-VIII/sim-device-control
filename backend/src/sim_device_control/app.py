@@ -5,7 +5,7 @@ import uuid
 import socket
 import inspect
 from .schemas import SimDevice, DeviceType, LogRecord
-from .db import get_db
+from .drivers.db import get_db
 
 app = FastAPI(title="Simulated Device Controller API")
 
