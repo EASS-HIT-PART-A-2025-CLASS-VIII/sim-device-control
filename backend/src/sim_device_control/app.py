@@ -6,11 +6,10 @@ import socket
 import inspect
 from .schemas import SimDevice, DeviceType, LogRecord
 from .drivers.db import get_db
+from .drivers.device_manager import get_device_manager
 from .drivers import device_manager
 
 app = FastAPI(title="Simulated Device Controller API")
-
-device_controller = device_manager.DeviceManager()
 
 def add_record(db, device_uuid: str = "", description: str = ""):
     try:
@@ -36,10 +35,10 @@ def list_devices(db = Depends(get_db)):
 
 
 @app.post("/devices/", response_model=SimDevice)
-def create_device(device: SimDevice, db = Depends(get_db)):
+def create_device(device: SimDevice, db = Depends(get_db), manager = Depends(get_device_manager)):
     try:
         add_record(db, description = f"Attempting to create device {device.uuid}")
-        device_controller.add_device(device)
+        manager.add_device(device)
         db.add_device(device)
     except ValueError as e:
         add_record(db, description = f"Failed to create device {device.uuid}: {str(e)}")
@@ -79,10 +78,10 @@ def get_devices_by_type(device_type: DeviceType, db = Depends(get_db)):
 
 
 @app.delete("/devices/{device_uuid}")
-def delete_device(device_uuid: str, db = Depends(get_db)):
+def delete_device(device_uuid: str, db = Depends(get_db), manager = Depends(get_device_manager)):
     try: 
         add_record(db, description = f"Attempting to delete device {device_uuid}")
-        device_controller.remove_device(device_uuid)
+        manager.remove_device(device_uuid)
         db.delete_device(device_uuid)
     except ValueError as e:
         add_record(db, description = f"Failed to delete device {device_uuid}: {str(e)}")
@@ -96,20 +95,20 @@ def delete_device(device_uuid: str, db = Depends(get_db)):
 # region all device types
 
 @app.get("/devices/get_status", response_model = str)
-def get_device_status(device_uuid: str, db = Depends(get_db)):
+def get_device_status(device_uuid: str, db = Depends(get_db), manager = Depends(get_device_manager)):
     try:
         add_record(db, description = f"Getting status from device {device_uuid}")
-        return device_controller.get_status(device_uuid)
+        return manager.get_status(device_uuid)
     except ValueError as e:
         add_record(db, description = f"Failed to get status from device {device_uuid}: {str(e)}")
         raise HTTPException(status_code=404, detail=str(e))
 
 
 @app.get("/devices/get_version", response_model = str)
-def get_device_version(device_uuid: str, db = Depends(get_db)):
+def get_device_version(device_uuid: str, db = Depends(get_db), manager = Depends(get_device_manager)):
     try:
         add_record(db, description = f"Getting version from device {device_uuid}")
-        return device_controller.get_version(device_uuid)
+        return manager.get_version(device_uuid)
     except ValueError as e:
         add_record(db, description = f"Failed to get version from device {device_uuid}: {str(e)}")
         raise HTTPException(status_code=404, detail=str(e))
@@ -119,7 +118,7 @@ def get_device_version(device_uuid: str, db = Depends(get_db)):
 # region temperature sensor operations
 
 @app.get("/devices/temperature_sensor/read_temperature", response_model=float)
-def read_temperature(device_uuid: str, db = Depends(get_db)):
+def read_temperature(device_uuid: str, db = Depends(get_db), manager = Depends(get_device_manager)):
     match_devices: List[SimDevice] = []
     for device in db.get_devices():
         if device.type == DeviceType.TEMPERATURE_SENSOR:
@@ -129,9 +128,49 @@ def read_temperature(device_uuid: str, db = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Device is not a temperature sensor")
     try:
         add_record(db, description = f"Reading temperature from sensor {device_uuid}")
-        return device_controller.read_temperature(device_uuid)
+        return manager.read_temperature(device_uuid)
     except ValueError as e:
         add_record(db, description = f"Failed to read temperature from sensor {device_uuid}: {str(e)}")
+        raise HTTPException(status_code=404, detail=str(e))
+
+# endregion
+
+# region pressure sensor operations
+
+@app.get("/devices/pressure_sensor/read_pressure", response_model=float)
+def read_pressure(device_uuid: str, db = Depends(get_db), manager = Depends(get_device_manager)):
+    match_devices: List[SimDevice] = []
+    for device in db.get_devices():
+        if device.type == DeviceType.PRESSURE_SENSOR:
+            match_devices.append(device)
+    if device_uuid not in [d.uuid for d in match_devices]:
+        add_record(db, description = f"Device {device_uuid} is not a pressure sensor")
+        raise HTTPException(status_code=404, detail="Device is not a pressure sensor")
+    try:
+        add_record(db, description = f"Reading pressure from sensor {device_uuid}")
+        return manager.read_pressure(device_uuid)
+    except ValueError as e:
+        add_record(db, description = f"Failed to read pressure from sensor {device_uuid}: {str(e)}")
+        raise HTTPException(status_code=404, detail=str(e))
+
+# endregion
+
+# region humidity sensor operations
+
+@app.get("/devices/humidity_sensor/read_humidity", response_model=float)
+def read_humidity(device_uuid: str, db = Depends(get_db), manager = Depends(get_device_manager)):
+    match_devices: List[SimDevice] = []
+    for device in db.get_devices():
+        if device.type == DeviceType.HUMIDITY_SENSOR:
+            match_devices.append(device)
+    if device_uuid not in [d.uuid for d in match_devices]:
+        add_record(db, description = f"Device {device_uuid} is not a humidity sensor")
+        raise HTTPException(status_code=404, detail="Device is not a humidity sensor")
+    try:
+        add_record(db, description = f"Reading humidity from sensor {device_uuid}")
+        return manager.read_humidity(device_uuid)
+    except ValueError as e:
+        add_record(db, description = f"Failed to read humidity from sensor {device_uuid}: {str(e)}")
         raise HTTPException(status_code=404, detail=str(e))
 
 # endregion

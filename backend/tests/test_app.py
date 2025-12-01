@@ -2,29 +2,32 @@ import pytest
 from fastapi.testclient import TestClient
 from sim_device_control import schemas
 from sim_device_control.app import app
-from sim_device_control.drivers import db
+from sim_device_control.drivers import db, device_manager
+from sim_device_control.drivers.device_manager import get_device_manager
+from sim_device_control.drivers.db import get_db
+
+
+app.dependency_overrides[get_db] = lambda: db.fake_db_session
+app.dependency_overrides[get_device_manager] = lambda: device_manager.device_manager
 
 client = TestClient(app)
-
-from sim_device_control.drivers.db import get_db
-app.dependency_overrides[get_db] = lambda: db.fake_db_session
-
 
 @pytest.fixture(autouse=True)
 def clear_tables():
     db.devices_table.clear()
     db.logs_table.clear()
+    device_manager.device_manager.drivers.clear()
     yield
     db.devices_table.clear()
     db.logs_table.clear()
+    device_manager.device_manager.drivers.clear()
 
-
-def make_device_payload(u, name = "device-1", type_val = schemas.DeviceType.DIGITAL_PORT):
+def make_device_payload(u, name = "device-1", type_val = schemas.DeviceType.TEMPERATURE_SENSOR):
     return {
         "uuid": u,
         "type": type_val.value,
         "name": name,
-        "status": "offline",
+        "status": "simulated",
         "description": "a device",
     }
 
@@ -96,6 +99,35 @@ def test_get_device_version():
 # endregion
 
 # region temperature sensor operations tests
+
+def test_read_temperature():
+    payload = make_device_payload("uuid-301", type_val = schemas.DeviceType.TEMPERATURE_SENSOR)
+    client.post("/devices/", json = payload)
+    r = client.get(f"/devices/temperature_sensor/read_temperature", params = {"device_uuid": "uuid-301"})
+    assert r.status_code == 200
+    assert isinstance(r.json(), float)
+
+# endregion
+
+# region pressure sensor operations tests
+
+def test_read_pressure():
+    payload = make_device_payload("uuid-302", type_val = schemas.DeviceType.PRESSURE_SENSOR)
+    client.post("/devices/", json = payload)
+    r = client.get(f"/devices/pressure_sensor/read_pressure", params = {"device_uuid": "uuid-302"})
+    assert r.status_code == 200
+    assert isinstance(r.json(), float)
+
+# endregion
+
+# region humidity sensor operations tests
+
+def test_read_humidity():
+    payload = make_device_payload("uuid-303", type_val = schemas.DeviceType.HUMIDITY_SENSOR)
+    client.post("/devices/", json = payload)
+    r = client.get(f"/devices/humidity_sensor/read_humidity", params = {"device_uuid": "uuid-303"})
+    assert r.status_code == 200
+    assert isinstance(r.json(), float)
 
 # endregion
 
