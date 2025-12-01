@@ -1,6 +1,6 @@
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 
-class BaseSensorDriver:
+class BaseSensorDriver(ABC):
 
     @abstractmethod
     def _read_data(self):

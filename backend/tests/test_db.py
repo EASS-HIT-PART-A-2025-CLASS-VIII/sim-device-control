@@ -87,5 +87,4 @@ def test_get_db_generator_yields_session_and_closes():
     gen = db.get_db()
     sess = next(gen)
     assert sess is db.fake_db_session
-    # close the generator to run the finally block (which calls close())
     gen.close()
