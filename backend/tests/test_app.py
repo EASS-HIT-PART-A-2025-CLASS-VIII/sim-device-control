@@ -237,7 +237,7 @@ def test_set_stepper_motor_acceleration():
 def test_move_stepper_motor_absolute():
     payload = make_device_payload("uuid-315", type_val = schemas.DeviceType.STEPPER_MOTOR)
     client.post("/devices/", json = payload)
-    r = client.put(f"/devices/stepper_motor/set_absolute_location", params = {"device_uuid": "uuid-315", "location": 100})
+    r = client.put(f"/devices/stepper_motor/set_absolute_location", params = {"device_uuid": "uuid-315", "absolute_location": 100})
     assert r.status_code == 200
     r2 = client.get(f"/devices/stepper_motor/get_location", params = {"device_uuid": "uuid-315"})
     assert r2.status_code == 200
@@ -247,10 +247,8 @@ def test_move_stepper_motor_absolute():
 def test_move_stepper_motor_relative():
     payload = make_device_payload("uuid-316", type_val = schemas.DeviceType.STEPPER_MOTOR)
     client.post("/devices/", json = payload)
-    # First set to a known location
-    client.put(f"/devices/stepper_motor/set_absolute_location", params = {"device_uuid": "uuid-316", "location": 50})
-    # Now move relative
-    r = client.put(f"/devices/stepper_motor/set_relative_location", params = {"device_uuid": "uuid-316", "location": 25})
+    client.put(f"/devices/stepper_motor/set_absolute_location", params = {"device_uuid": "uuid-316", "absolute_location": 50})
+    r = client.put(f"/devices/stepper_motor/set_relative_location", params = {"device_uuid": "uuid-316", "relative_location": 25})
     assert r.status_code == 200
     r2 = client.get(f"/devices/stepper_motor/get_location", params = {"device_uuid": "uuid-316"})
     assert r2.status_code == 200
