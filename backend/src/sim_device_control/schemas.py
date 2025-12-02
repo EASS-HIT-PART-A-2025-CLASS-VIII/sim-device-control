@@ -12,7 +12,7 @@ class DeviceType(Enum):
     PRESSURE_SENSOR = "pressure_sensor"
     HUMIDITY_SENSOR = "humidity_sensor"
     DC_MOTOR = "dc_motor"
-    # STEPPER_MOTOR = "stepper_motor"
+    STEPPER_MOTOR = "stepper_motor"
     # DIGITAL_PORT = "digital_port"
     # ANALOG_PORT = "analog_port"
 
@@ -36,4 +36,4 @@ class LogRecord(BaseModel):
 
 class MotorDirection(Enum):
     FORWARD = "forward"
-    REVERSE = "backward"
+    BACKWARD = "backward"

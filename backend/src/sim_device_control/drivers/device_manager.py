@@ -6,6 +6,8 @@ from .temperature import TemperatureSensorDriver
 from .pressure import PressureSensorDriver
 from .humidity import HumiditySensorDriver
 from .dc_motor import DcMotorDriver
+from .stepper_motor import StepperMotorDriver
+
 
 DeviceDriverType = Union[BaseSensorDriver, BaseControllerDriver]
 
@@ -27,6 +29,8 @@ class DeviceManager:
             self.drivers.append(HumiditySensorDriver(device.uuid))
         elif device.type == DeviceType.DC_MOTOR:
             self.drivers.append(DcMotorDriver(device.uuid))
+        elif device.type == DeviceType.STEPPER_MOTOR:
+            self.drivers.append(StepperMotorDriver(device.uuid))
 
 
     def remove_device(self, uuid: str):
@@ -105,6 +109,54 @@ class DeviceManager:
     def set_dc_motor_direction(self, uuid: str, direction: DeviceType):
         device = cast(DcMotorDriver, self._get_device(uuid))
         device.set_direction(direction)
+
+# endregion
+
+# region stepper motor operations
+
+    def get_stepper_motor_speed(self, uuid: str):
+        device = cast(StepperMotorDriver, self._get_device(uuid))
+        return device.get_speed()
+    
+
+    def get_stepper_motor_direction(self, uuid: str):
+        device = cast(StepperMotorDriver, self._get_device(uuid))
+        return device.get_direction()
+    
+
+    def get_stepper_motor_acceleration(self, uuid: str):
+        device = cast(StepperMotorDriver, self._get_device(uuid))
+        return device.get_acceleration()
+    
+
+    def get_stepper_motor_location(self, uuid: str):
+        device = cast(StepperMotorDriver, self._get_device(uuid))
+        return device.get_location()
+    
+
+    def set_stepper_motor_speed(self, uuid: str, speed: float):
+        device = cast(StepperMotorDriver, self._get_device(uuid))
+        device.set_speed(speed)
+
+
+    def set_stepper_motor_direction(self, uuid: str, direction: DeviceType):
+        device = cast(StepperMotorDriver, self._get_device(uuid))
+        device.set_direction(direction)
+
+
+    def set_stepper_motor_acceleration(self, uuid: str, acceleration: float):
+        device = cast(StepperMotorDriver, self._get_device(uuid))
+        device.set_acceleration(acceleration)
+
+    
+    def set_stepper_motor_absolute_location(self, uuid: str, location: int):
+        device = cast(StepperMotorDriver, self._get_device(uuid))
+        device.move_absolute(location)
+
+
+    def set_stepper_motor_relative_location(self, uuid: str, location: int):
+        device = cast(StepperMotorDriver, self._get_device(uuid))
+        device.move_relative(location)
 
 # endregion
 

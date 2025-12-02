@@ -7,7 +7,6 @@ import inspect
 from .schemas import SimDevice, DeviceType, LogRecord, MotorDirection
 from .drivers.db import get_db
 from .drivers.device_manager import get_device_manager
-from .drivers import device_manager
 
 app = FastAPI(title="Simulated Device Controller API")
 
@@ -256,6 +255,170 @@ def set_dc_motor_direction(device_uuid: str, direction: MotorDirection, db = Dep
         manager.set_dc_motor_direction(device_uuid, direction)
     except ValueError as e:
         add_record(db, logged_device_uuid = device_uuid, description = f"Failed to set dc motor direction: {str(e)}")
+        raise HTTPException(status_code = 404, detail = str(e))
+
+# endregion
+
+# region stepper motor operations
+
+@app.get("/devices/stepper_motor/get_speed", response_model = float)
+def get_stepper_motor_speed(device_uuid: str, db = Depends(get_db), manager = Depends(get_device_manager)):
+    match_devices: List[SimDevice] = []
+    for device in db.get_devices():
+        if device.type == DeviceType.STEPPER_MOTOR:
+            match_devices.append(device)
+    if device_uuid not in [d.uuid for d in match_devices]:
+        add_record(db, logged_device_uuid = device_uuid, description = "Device is not a stepper motor")
+        raise HTTPException(status_code = 404, detail = "Device is not a stepper motor")
+    try:
+        add_record(db, logged_device_uuid = device_uuid, description = f"Reading stepper motor speed")
+        speed = manager.get_stepper_motor_speed(device_uuid)
+        add_record(db, logged_device_uuid = device_uuid, description = f"Read stepper motor speed: {speed}")
+        return speed
+    except ValueError as e:
+        add_record(db, logged_device_uuid = device_uuid, description = f"Failed to read stepper motor speed: {str(e)}")
+        raise HTTPException(status_code = 404, detail = str(e))
+    
+
+@app.get("/devices/stepper_motor/get_direction", response_model = MotorDirection)
+def get_stepper_motor_direction(device_uuid: str, db = Depends(get_db), manager = Depends(get_device_manager)):
+    match_devices: List[SimDevice] = []
+    for device in db.get_devices():
+        if device.type == DeviceType.STEPPER_MOTOR:
+            match_devices.append(device)
+    if device_uuid not in [d.uuid for d in match_devices]:
+        add_record(db, logged_device_uuid = device_uuid, description = "Device is not a stepper motor")
+        raise HTTPException(status_code = 404, detail = "Device is not a stepper motor")
+    try:
+        add_record(db, logged_device_uuid = device_uuid, description = f"Reading stepper motor direction")
+        direction = manager.get_stepper_motor_direction(device_uuid)
+        add_record(db, logged_device_uuid = device_uuid, description = f"Read stepper motor direction: {direction}")
+        return direction
+    except ValueError as e:
+        add_record(db, logged_device_uuid = device_uuid, description = f"Failed to read stepper motor direction: {str(e)}")
+        raise HTTPException(status_code = 404, detail = str(e))
+    
+
+@app.get("/devices/stepper_motor/get_acceleration", response_model = float)
+def get_stepper_motor_acceleration(device_uuid: str, db = Depends(get_db), manager = Depends(get_device_manager)):
+    match_devices: List[SimDevice] = []
+    for device in db.get_devices():
+        if device.type == DeviceType.STEPPER_MOTOR:
+            match_devices.append(device)
+    if device_uuid not in [d.uuid for d in match_devices]:
+        add_record(db, logged_device_uuid = device_uuid, description = "Device is not a stepper motor")
+        raise HTTPException(status_code = 404, detail = "Device is not a stepper motor")
+    try:
+        add_record(db, logged_device_uuid = device_uuid, description = f"Reading stepper motor acceleration")
+        acceleration = manager.get_stepper_motor_acceleration(device_uuid)
+        add_record(db, logged_device_uuid = device_uuid, description = f"Read stepper motor acceleration: {acceleration}")
+        return acceleration
+    except ValueError as e:
+        add_record(db, logged_device_uuid = device_uuid, description = f"Failed to read stepper motor acceleration: {str(e)}")
+        raise HTTPException(status_code = 404, detail = str(e))
+    
+
+@app.get("/devices/stepper_motor/get_location", response_model = int)
+def get_stepper_motor_location(device_uuid: str, db = Depends(get_db), manager = Depends(get_device_manager)):
+    match_devices: List[SimDevice] = []
+    for device in db.get_devices():
+        if device.type == DeviceType.STEPPER_MOTOR:
+            match_devices.append(device)
+    if device_uuid not in [d.uuid for d in match_devices]:
+        add_record(db, logged_device_uuid = device_uuid, description = "Device is not a stepper motor")
+        raise HTTPException(status_code = 404, detail = "Device is not a stepper motor")
+    try:
+        add_record(db, logged_device_uuid = device_uuid, description = f"Reading stepper motor location")
+        location = manager.get_stepper_motor_location(device_uuid)
+        add_record(db, logged_device_uuid = device_uuid, description = f"Read stepper motor location: {location}")
+        return location
+    except ValueError as e:
+        add_record(db, logged_device_uuid = device_uuid, description = f"Failed to read stepper motor location: {str(e)}")
+        raise HTTPException(status_code = 404, detail = str(e))
+
+
+@app.put("/devices/stepper_motor/set_speed")
+def set_stepper_motor_speed(device_uuid: str, speed: float, db = Depends(get_db), manager = Depends(get_device_manager)):
+    match_devices: List[SimDevice] = []
+    for device in db.get_devices():
+        if device.type == DeviceType.STEPPER_MOTOR:
+            match_devices.append(device)
+    if device_uuid not in [d.uuid for d in match_devices]:
+        add_record(db, logged_device_uuid = device_uuid, description = "Device is not a stepper motor")
+        raise HTTPException(status_code = 404, detail = "Device is not a stepper motor")
+    try:
+        add_record(db, logged_device_uuid = device_uuid, description = f"Setting stepper motor speed: {speed}")
+        manager.set_stepper_motor_speed(device_uuid, speed)
+    except ValueError as e:
+        add_record(db, logged_device_uuid = device_uuid, description = f"Failed to set speed for motor: {str(e)}")
+        raise HTTPException(status_code = 404, detail = str(e))
+    
+
+@app.put("/devices/stepper_motor/set_direction")
+def set_stepper_motor_direction(device_uuid: str, direction: MotorDirection, db = Depends(get_db), manager = Depends(get_device_manager)):
+    match_devices: List[SimDevice] = []
+    for device in db.get_devices():
+        if device.type == DeviceType.STEPPER_MOTOR:
+            match_devices.append(device)
+    if device_uuid not in [d.uuid for d in match_devices]:
+        add_record(db, logged_device_uuid = device_uuid, description = "Device is not a stepper motor")
+        raise HTTPException(status_code = 404, detail = "Device is not a stepper motor")
+    try:
+        add_record(db, logged_device_uuid = device_uuid, description = f"Setting stepper motor direction: {direction}")
+        manager.set_stepper_motor_direction(device_uuid, direction)
+    except ValueError as e:
+        add_record(db, logged_device_uuid = device_uuid, description = f"Failed to set stepper motor direction: {str(e)}")
+        raise HTTPException(status_code = 404, detail = str(e))
+    
+
+@app.put("/devices/stepper_motor/set_acceleration")
+def set_stepper_motor_acceleration(device_uuid: str, acceleration: float, db = Depends(get_db), manager = Depends(get_device_manager)):
+    match_devices: List[SimDevice] = []
+    for device in db.get_devices():
+        if device.type == DeviceType.STEPPER_MOTOR:
+            match_devices.append(device)
+    if device_uuid not in [d.uuid for d in match_devices]:
+        add_record(db, logged_device_uuid = device_uuid, description = "Device is not a stepper motor")
+        raise HTTPException(status_code = 404, detail = "Device is not a stepper motor")
+    try:
+        add_record(db, logged_device_uuid = device_uuid, description = f"Setting stepper motor acceleration: {acceleration}")
+        manager.set_stepper_motor_acceleration(device_uuid, acceleration)
+    except ValueError as e:
+        add_record(db, logged_device_uuid = device_uuid, description = f"Failed to set stepper motor acceleration: {str(e)}")
+        raise HTTPException(status_code = 404, detail = str(e))
+    
+
+@app.put("/devices/stepper_motor/set_absolute_location")
+def set_stepper_motor_absolute_location(device_uuid: str, absolute_location: float, db = Depends(get_db), manager = Depends(get_device_manager)):
+    match_devices: List[SimDevice] = []
+    for device in db.get_devices():
+        if device.type == DeviceType.STEPPER_MOTOR:
+            match_devices.append(device)
+    if device_uuid not in [d.uuid for d in match_devices]:
+        add_record(db, logged_device_uuid = device_uuid, description = "Device is not a stepper motor")
+        raise HTTPException(status_code = 404, detail = "Device is not a stepper motor")
+    try:
+        add_record(db, logged_device_uuid = device_uuid, description = f"Setting stepper motor absolute location: {absolute_location}")
+        manager.set_stepper_motor_absolute_location(device_uuid, absolute_location)
+    except ValueError as e:
+        add_record(db, logged_device_uuid = device_uuid, description = f"Failed to set stepper motor absolute location: {str(e)}")
+        raise HTTPException(status_code = 404, detail = str(e))
+    
+
+@app.put("/devices/stepper_motor/set_relative_location")
+def set_stepper_motor_relative_location(device_uuid: str, relative_location: float, db = Depends(get_db), manager = Depends(get_device_manager)):
+    match_devices: List[SimDevice] = []
+    for device in db.get_devices():
+        if device.type == DeviceType.STEPPER_MOTOR:
+            match_devices.append(device)
+    if device_uuid not in [d.uuid for d in match_devices]:
+        add_record(db, logged_device_uuid = device_uuid, description = "Device is not a stepper motor")
+        raise HTTPException(status_code = 404, detail = "Device is not a stepper motor")
+    try:
+        add_record(db, logged_device_uuid = device_uuid, description = f"Setting stepper motor relative location: {relative_location}")
+        manager.set_stepper_motor_relative_location(device_uuid, relative_location)
+    except ValueError as e:
+        add_record(db, logged_device_uuid = device_uuid, description = f"Failed to set stepper motor relative location: {str(e)}")
         raise HTTPException(status_code = 404, detail = str(e))
 
 # endregion
