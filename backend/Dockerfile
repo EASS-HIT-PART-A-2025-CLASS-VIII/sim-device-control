@@ -5,10 +5,7 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy source code
 COPY src ./src
-
-# Change working directory so Python can import sim_device_control
 WORKDIR /app/src
 
 EXPOSE 8000
