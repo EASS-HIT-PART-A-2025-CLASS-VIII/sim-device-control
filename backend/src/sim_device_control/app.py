@@ -11,12 +11,12 @@ from .drivers import device_manager
 
 app = FastAPI(title="Simulated Device Controller API")
 
-def add_record(db, device_uuid: str = "", description: str = ""):
+def add_record(db, logged_device_uuid: str = "", description: str = ""):
     try:
         record = LogRecord(
             uuid = uuid.uuid4(),
             user = socket.gethostname() + "-" + socket.gethostbyname(socket.gethostname()),
-            device_uuid = device_uuid,
+            device_uuid = logged_device_uuid,
             action = inspect.stack()[1].function,
             description = description,
             timestamp = datetime.now()
@@ -97,20 +97,24 @@ def delete_device(device_uuid: str, db = Depends(get_db), manager = Depends(get_
 @app.get("/devices/get_status", response_model = str)
 def get_device_status(device_uuid: str, db = Depends(get_db), manager = Depends(get_device_manager)):
     try:
-        add_record(db, description = f"Getting status from device {device_uuid}")
-        return manager.get_status(device_uuid)
+        add_record(db, logged_device_uuid = device_uuid, description = "Getting status")
+        device_status = manager.get_status(device_uuid)
+        add_record(db, logged_device_uuid = device_uuid, description = f"Status: {device_status}")
+        return device_status
     except ValueError as e:
-        add_record(db, description = f"Failed to get status from device {device_uuid}: {str(e)}")
+        add_record(db, logged_device_uuid = device_uuid, description = f"Failed to get status: {str(e)}")
         raise HTTPException(status_code = 404, detail = str(e))
 
 
 @app.get("/devices/get_version", response_model = str)
 def get_device_version(device_uuid: str, db = Depends(get_db), manager = Depends(get_device_manager)):
     try:
-        add_record(db, description = f"Getting version from device {device_uuid}")
-        return manager.get_version(device_uuid)
+        add_record(db, logged_device_uuid = device_uuid, description = "Getting version")
+        device_version = manager.get_version(device_uuid)
+        add_record(db, logged_device_uuid = device_uuid, description = f"Version: {device_version}")
+        return device_version
     except ValueError as e:
-        add_record(db, description = f"Failed to get version from device {device_uuid}: {str(e)}")
+        add_record(db, logged_device_uuid = device_uuid, description = f"Failed to get version from device: {str(e)}")
         raise HTTPException(status_code = 404, detail = str(e))
     
 # endregion
@@ -124,13 +128,15 @@ def read_temperature(device_uuid: str, db = Depends(get_db), manager = Depends(g
         if device.type == DeviceType.TEMPERATURE_SENSOR:
             match_devices.append(device)
     if device_uuid not in [d.uuid for d in match_devices]:
-        add_record(db, description = f"Device {device_uuid} is not a temperature sensor")
+        add_record(db, logged_device_uuid = device_uuid, description = "Device is not a temperature sensor")
         raise HTTPException(status_code = 404, detail="Device is not a temperature sensor")
     try:
-        add_record(db, description = f"Reading temperature from sensor {device_uuid}")
-        return manager.read_temperature(device_uuid)
+        add_record(db, logged_device_uuid = device_uuid, description = "Reading temperature from sensor")
+        temperature = manager.read_temperature(device_uuid)
+        add_record(db, logged_device_uuid = device_uuid, description = f"Read temperature: {temperature}")
+        return temperature
     except ValueError as e:
-        add_record(db, description = f"Failed to read temperature from sensor {device_uuid}: {str(e)}")
+        add_record(db, logged_device_uuid = device_uuid, description = f"Failed to read temperature from sensor: {str(e)}")
         raise HTTPException(status_code = 404, detail = str(e))
 
 # endregion
@@ -144,13 +150,15 @@ def read_pressure(device_uuid: str, db = Depends(get_db), manager = Depends(get_
         if device.type == DeviceType.PRESSURE_SENSOR:
             match_devices.append(device)
     if device_uuid not in [d.uuid for d in match_devices]:
-        add_record(db, description = f"Device {device_uuid} is not a pressure sensor")
+        add_record(db, logged_device_uuid = device_uuid, description = "Device is not a pressure sensor")
         raise HTTPException(status_code = 404, detail="Device is not a pressure sensor")
     try:
-        add_record(db, description = f"Reading pressure from sensor {device_uuid}")
-        return manager.read_pressure(device_uuid)
+        add_record(db, logged_device_uuid = device_uuid, description = "Reading pressure from sensor")
+        pressure = manager.read_pressure(device_uuid)
+        add_record(db, logged_device_uuid = device_uuid, description = f"Read pressure: {pressure}")
+        return pressure
     except ValueError as e:
-        add_record(db, description = f"Failed to read pressure from sensor {device_uuid}: {str(e)}")
+        add_record(db, logged_device_uuid = device_uuid, description = f"Failed to read pressure from sensor: {str(e)}")
         raise HTTPException(status_code = 404, detail = str(e))
 
 # endregion
@@ -164,13 +172,15 @@ def read_humidity(device_uuid: str, db = Depends(get_db), manager = Depends(get_
         if device.type == DeviceType.HUMIDITY_SENSOR:
             match_devices.append(device)
     if device_uuid not in [d.uuid for d in match_devices]:
-        add_record(db, description = f"Device {device_uuid} is not a humidity sensor")
+        add_record(db, logged_device_uuid = device_uuid, description = "Device is not a humidity sensor")
         raise HTTPException(status_code = 404, detail="Device is not a humidity sensor")
     try:
-        add_record(db, description = f"Reading humidity from sensor {device_uuid}")
-        return manager.read_humidity(device_uuid)
+        add_record(db, logged_device_uuid = device_uuid, description = f"Reading humidity from sensor")
+        humidity = manager.read_humidity(device_uuid)
+        add_record(db, logged_device_uuid = device_uuid, description = f"Read humidity: {humidity}")
+        return humidity
     except ValueError as e:
-        add_record(db, description = f"Failed to read humidity from sensor {device_uuid}: {str(e)}")
+        add_record(db, logged_device_uuid = device_uuid, description = f"Failed to read humidity from sensor: {str(e)}")
         raise HTTPException(status_code = 404, detail = str(e))
 
 # endregion
@@ -184,13 +194,15 @@ def get_dc_motor_speed(device_uuid: str, db = Depends(get_db), manager = Depends
         if device.type == DeviceType.DC_MOTOR:
             match_devices.append(device)
     if device_uuid not in [d.uuid for d in match_devices]:
-        add_record(db, description = f"Device {device_uuid} is not a dc motor")
+        add_record(db, logged_device_uuid = device_uuid, description = "Device is not a dc motor")
         raise HTTPException(status_code = 404, detail = "Device is not a dc motor")
     try:
-        add_record(db, description = f"Reading dc motor speed from motor {device_uuid}")
-        return manager.get_dc_motor_speed(device_uuid)
+        add_record(db, logged_device_uuid = device_uuid, description = f"Reading dc motor speed")
+        speed = manager.get_dc_motor_speed(device_uuid)
+        add_record(db, logged_device_uuid = device_uuid, description = f"Read dc motor speed: {speed}")
+        return speed
     except ValueError as e:
-        add_record(db, description = f"Failed to read dc motor speed from motor {device_uuid}: {str(e)}")
+        add_record(db, logged_device_uuid = device_uuid, description = f"Failed to read dc motor speed: {str(e)}")
         raise HTTPException(status_code = 404, detail = str(e))
     
 
@@ -201,13 +213,15 @@ def get_dc_motor_direction(device_uuid: str, db = Depends(get_db), manager = Dep
         if device.type == DeviceType.DC_MOTOR:
             match_devices.append(device)
     if device_uuid not in [d.uuid for d in match_devices]:
-        add_record(db, description = f"Device {device_uuid} is not a dc motor")
+        add_record(db, logged_device_uuid = device_uuid, description = "Device is not a dc motor")
         raise HTTPException(status_code = 404, detail = "Device is not a dc motor")
     try:
-        add_record(db, description = f"Reading dc motor direction from motor {device_uuid}")
-        return manager.get_dc_motor_direction(device_uuid)
+        add_record(db, logged_device_uuid = device_uuid, description = f"Reading dc motor direction")
+        direction = manager.get_dc_motor_direction(device_uuid)
+        add_record(db, logged_device_uuid = device_uuid, description = f"Read dc motor direction: {direction}")
+        return direction
     except ValueError as e:
-        add_record(db, description = f"Failed to read dc motor direction from motor {device_uuid}: {str(e)}")
+        add_record(db, logged_device_uuid = device_uuid, description = f"Failed to read dc motor direction: {str(e)}")
         raise HTTPException(status_code = 404, detail = str(e))
 
 
@@ -218,13 +232,13 @@ def set_dc_motor_speed(device_uuid: str, speed: float, db = Depends(get_db), man
         if device.type == DeviceType.DC_MOTOR:
             match_devices.append(device)
     if device_uuid not in [d.uuid for d in match_devices]:
-        add_record(db, description = f"Device {device_uuid} is not a dc motor")
+        add_record(db, logged_device_uuid = device_uuid, description = "Device is not a dc motor")
         raise HTTPException(status_code = 404, detail = "Device is not a dc motor")
     try:
-        add_record(db, description = f"Setting dc motor speed for motor {device_uuid} to {speed}")
+        add_record(db, logged_device_uuid = device_uuid, description = f"Setting dc motor speed: {speed}")
         manager.set_dc_motor_speed(device_uuid, speed)
     except ValueError as e:
-        add_record(db, description = f"Failed to set dc motor speed for motor {device_uuid}: {str(e)}")
+        add_record(db, logged_device_uuid = device_uuid, description = f"Failed to set speed for motor: {str(e)}")
         raise HTTPException(status_code = 404, detail = str(e))
     
 
@@ -235,13 +249,13 @@ def set_dc_motor_direction(device_uuid: str, direction: MotorDirection, db = Dep
         if device.type == DeviceType.DC_MOTOR:
             match_devices.append(device)
     if device_uuid not in [d.uuid for d in match_devices]:
-        add_record(db, description = f"Device {device_uuid} is not a dc motor")
+        add_record(db, logged_device_uuid = device_uuid, description = "Device is not a dc motor")
         raise HTTPException(status_code = 404, detail = "Device is not a dc motor")
     try:
-        add_record(db, description = f"Setting dc motor direction for motor {device_uuid} to {direction}")
+        add_record(db, logged_device_uuid = device_uuid, description = f"Setting dc motor direction: {direction}")
         manager.set_dc_motor_direction(device_uuid, direction)
     except ValueError as e:
-        add_record(db, description = f"Failed to set dc motor direction for motor {device_uuid}: {str(e)}")
+        add_record(db, logged_device_uuid = device_uuid, description = f"Failed to set dc motor direction: {str(e)}")
         raise HTTPException(status_code = 404, detail = str(e))
 
 # endregion
