@@ -57,7 +57,6 @@ pip install -r requirements.txt
 Run the API locally with uvicorn (module entrypoint):
 
 ```bash
-export PYTHONPATH=$PYTHONPATH:./src
 python -m uvicorn sim_device_control.app:app --reload --host 0.0.0.0 --port 8000
 ```
 
