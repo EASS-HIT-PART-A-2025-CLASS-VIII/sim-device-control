@@ -44,6 +44,11 @@ backend/
 └── uv.lock
 ```
 
+**Prerequisites:**
+- Python 3.12+
+- Virtualenv
+- Docker (for container builds)
+
 **Getting started (local)**
 
 Create and activate your virtualenv and install dependencies (project uses a `.venv` by convention):
