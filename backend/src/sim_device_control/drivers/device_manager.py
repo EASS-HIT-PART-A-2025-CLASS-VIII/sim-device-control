@@ -1,10 +1,11 @@
 from typing import Any, List, Dict, Union, cast
+from ..schemas import DeviceType, SimDevice
 from .base.base_controller import BaseControllerDriver
 from .base.base_sensor import BaseSensorDriver
 from .temperature import TemperatureSensorDriver
 from .pressure import PressureSensorDriver
 from .humidity import HumiditySensorDriver
-from ..schemas import DeviceType, SimDevice
+from .dc_motor import DcMotorDriver
 
 DeviceDriverType = Union[BaseSensorDriver, BaseControllerDriver]
 
@@ -24,6 +25,8 @@ class DeviceManager:
             self.drivers.append(PressureSensorDriver(device.uuid))
         elif device.type == DeviceType.HUMIDITY_SENSOR:
             self.drivers.append(HumiditySensorDriver(device.uuid))
+        elif device.type == DeviceType.DC_MOTOR:
+            self.drivers.append(DcMotorDriver(device.uuid))
 
 
     def remove_device(self, uuid: str):
@@ -82,8 +85,30 @@ class DeviceManager:
     
 # endregion
     
+# region dc motor operations
+
+    def get_dc_motor_speed(self, uuid: str):
+        device = cast(DcMotorDriver, self._get_device(uuid))
+        return device.get_speed()
+    
+
+    def get_dc_motor_direction(self, uuid: str):
+        device = cast(DcMotorDriver, self._get_device(uuid))
+        return device.get_direction()
+    
+
+    def set_dc_motor_speed(self, uuid: str, speed: float):
+        device = cast(DcMotorDriver, self._get_device(uuid))
+        device.set_speed(speed)
+
+
+    def set_dc_motor_direction(self, uuid: str, direction: DeviceType):
+        device = cast(DcMotorDriver, self._get_device(uuid))
+        device.set_direction(direction)
+
 # endregion
 
+# endregion
 
 device_manager = DeviceManager()
 

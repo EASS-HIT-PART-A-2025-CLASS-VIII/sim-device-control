@@ -131,6 +131,45 @@ def test_read_humidity():
 
 # endregion
 
+# region dc motor operations tests
+
+def test_read_dc_motor_speed():
+    payload = make_device_payload("uuid-304", type_val = schemas.DeviceType.DC_MOTOR)
+    client.post("/devices/", json = payload)
+    r = client.get(f"/devices/dc_motor/get_speed", params = {"device_uuid": "uuid-304"})
+    assert r.status_code == 200
+    assert isinstance(r.json(), float)
+
+
+def test_read_dc_motor_direction():
+    payload = make_device_payload("uuid-305", type_val = schemas.DeviceType.DC_MOTOR)
+    client.post("/devices/", json = payload)
+    r = client.get(f"/devices/dc_motor/get_direction", params = {"device_uuid": "uuid-305"})
+    assert r.status_code == 200
+    assert r.json() in [dir.value for dir in schemas.MotorDirection]
+
+
+def test_set_dc_motor_speed():
+    payload = make_device_payload("uuid-306", type_val = schemas.DeviceType.DC_MOTOR)
+    client.post("/devices/", json = payload)
+    r = client.post(f"/devices/dc_motor/set_speed", params = {"device_uuid": "uuid-306", "speed": 75.0})
+    assert r.status_code == 200
+    r2 = client.get(f"/devices/dc_motor/get_speed", params = {"device_uuid": "uuid-306"})
+    assert r2.status_code == 200
+    assert r2.json() == 75.0
+
+
+def test_set_dc_motor_direction():
+    payload = make_device_payload("uuid-307", type_val = schemas.DeviceType.DC_MOTOR)
+    client.post("/devices/", json = payload)
+    r = client.post(f"/devices/dc_motor/set_direction", params = {"device_uuid": "uuid-307", "direction": schemas.MotorDirection.REVERSE.value})
+    assert r.status_code == 200
+    r2 = client.get(f"/devices/dc_motor/get_direction", params = {"device_uuid": "uuid-307"})
+    assert r2.status_code == 200
+    assert r2.json() == schemas.MotorDirection.REVERSE.value
+    
+# endregion
+
 # endregion
 
 # region logging operations tests

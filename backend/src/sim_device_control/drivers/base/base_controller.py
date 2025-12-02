@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 class BaseControllerDriver(ABC):
 
     @abstractmethod
-    def _write_data(self):
+    def _write_data(self, **kwargs):
         raise NotImplementedError("Subclasses must implement this method")
 
 

@@ -18,7 +18,7 @@ def clear_tables():
 def make_device(u: str = "dev-1"):
     return schemas.SimDevice(
         uuid=u,
-        type=schemas.DeviceType.DIGITAL_PORT,
+        type=schemas.DeviceType.TEMPERATURE_SENSOR,
         name="test",
         status="offline",
         description="desc",
