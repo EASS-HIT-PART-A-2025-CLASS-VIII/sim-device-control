@@ -5,7 +5,8 @@ import uuid
 from sim_device_control import schemas
 from sim_device_control.drivers import db
 
-@pytest.fixture(autouse = True)
+
+@pytest.fixture(autouse=True)
 def clear_tables():
     # ensure tables are empty before each test
     db.devices_table.clear()
