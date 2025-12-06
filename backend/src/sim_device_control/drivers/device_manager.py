@@ -1,4 +1,4 @@
-from typing import List, Union, cast
+from typing import Any, Dict, List, Union, cast
 from ..schemas import DeviceType, SimDevice
 from .base.base_controller import BaseControllerDriver
 from .base.base_sensor import BaseSensorDriver
@@ -18,19 +18,22 @@ class DeviceManager:
 
     # region internal methods
 
+    driver_map: Dict[DeviceType, type] = {
+        DeviceType.TEMPERATURE_SENSOR: TemperatureSensorDriver,
+        DeviceType.PRESSURE_SENSOR: PressureSensorDriver,
+        DeviceType.HUMIDITY_SENSOR: HumiditySensorDriver,
+        DeviceType.DC_MOTOR: DcMotorDriver,
+        DeviceType.STEPPER_MOTOR: StepperMotorDriver,
+    }
+
     def add_device(self, device: SimDevice):
         if device.uuid in self.drivers:
             raise ValueError(f"Device {device.uuid} already exists")
-        if device.type == DeviceType.TEMPERATURE_SENSOR:
-            self.drivers.append(TemperatureSensorDriver(device.uuid))
-        elif device.type == DeviceType.PRESSURE_SENSOR:
-            self.drivers.append(PressureSensorDriver(device.uuid))
-        elif device.type == DeviceType.HUMIDITY_SENSOR:
-            self.drivers.append(HumiditySensorDriver(device.uuid))
-        elif device.type == DeviceType.DC_MOTOR:
-            self.drivers.append(DcMotorDriver(device.uuid))
-        elif device.type == DeviceType.STEPPER_MOTOR:
-            self.drivers.append(StepperMotorDriver(device.uuid))
+        try:
+            driver_class = self.driver_map[device.type]
+        except KeyError:
+            raise ValueError(f"Unsupported device type: {device.type}")
+        self.drivers.append(driver_class(device.uuid))
 
     def remove_device(self, uuid: str):
         device_to_delete = self._get_device(uuid)

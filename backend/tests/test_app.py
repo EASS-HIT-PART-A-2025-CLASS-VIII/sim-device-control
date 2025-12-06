@@ -56,7 +56,8 @@ def test_create_device():
 def test_get_devices_by_type():
     payload = make_device_payload("uuid-101")
     client.post("/devices/", json=payload)
-    r = client.get(f"/devices/type/{payload['type']}")
+    device_type = payload["type"]
+    r = client.get(f"/devices/type/{device_type}")
     assert r.status_code == 200
     matched = r.json()
     assert isinstance(matched, list)
