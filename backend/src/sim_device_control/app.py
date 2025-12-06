@@ -8,7 +8,7 @@ from .schemas import SimDevice, DeviceType, LogRecord, MotorDirection
 from .drivers.db import get_db
 from .drivers.device_manager import get_device_manager
 
-ags_metadata = [
+tags_metadata = [
     {
         "name": "General Device Control",
         "description": "General operations: add, remove, list.",
@@ -43,16 +43,14 @@ ags_metadata = [
     },
 ]
 
-app = FastAPI(title="Simulated Device Controller API")
+app = FastAPI(title="Simulated Device Controller API", openapi_tags=tags_metadata)
 
 
 def add_record(db, logged_device_uuid: str = "", description: str = ""):
     try:
         record = LogRecord(
             uuid=uuid.uuid4(),
-            user=socket.gethostname()
-            + "-"
-            + socket.gethostbyname(socket.gethostname()),
+            user=f"{socket.gethostname()}-{socket.gethostbyname(socket.gethostname())}",
             device_uuid=logged_device_uuid,
             action=inspect.stack()[1].function,
             description=description,
@@ -61,6 +59,18 @@ def add_record(db, logged_device_uuid: str = "", description: str = ""):
         db.add_log(record)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
+
+
+def match_device_type(db, device_uuid: str, device_type: DeviceType) -> None:
+    matching_devices = [d for d in db.get_devices() if d.type == device_type]
+    if device_uuid not in [d.uuid for d in matching_devices]:
+        device_detail = device_type.value.lower().replace("_", " ")
+        add_record(
+            db,
+            logged_device_uuid=device_uuid,
+            description=f"Device is not a {device_detail}",
+        )
+        raise HTTPException(status_code=404, detail=f"Device is not a {device_detail}")
 
 
 # region general device operations
@@ -94,17 +104,14 @@ def create_device(
 )
 def get_devices_by_type(device_type: DeviceType, db=Depends(get_db)):
     add_record(db, description=f"Attempting to get devices by type {device_type}")
-    match_devices: List[SimDevice] = []
-    for device in db.get_devices():
-        if device.type == device_type:
-            match_devices.append(device)
-    if len(match_devices) == 0:
+    matching_devices = [d for d in db.get_devices() if d.type == device_type]
+    if len(matching_devices) == 0:
         add_record(db, description=f"No devices found for type {device_type}")
         raise HTTPException(status_code=404, detail="Device type not found")
     add_record(
-        db, description=f"Found {len(match_devices)} devices of type {device_type}"
+        db, description=f"Found {len(matching_devices)} devices of type {device_type}"
     )
-    return match_devices
+    return matching_devices
 
 
 # You can't actually change an existing device's info, disabled in case it would be needed later
@@ -123,7 +130,7 @@ def get_devices_by_type(device_type: DeviceType, db=Depends(get_db)):
 #     return updated_device
 
 
-@app.delete("/devices/{device_uuid}", tags=["General Device Control"])
+@app.delete("/devices/{device_uuid}", tags=["General Device Control"], status_code=204)
 def delete_device(
     device_uuid: str, db=Depends(get_db), manager=Depends(get_device_manager)
 ):
@@ -197,19 +204,7 @@ def get_device_version(
 def read_temperature(
     device_uuid: str, db=Depends(get_db), manager=Depends(get_device_manager)
 ):
-    match_devices: List[SimDevice] = []
-    for device in db.get_devices():
-        if device.type == DeviceType.TEMPERATURE_SENSOR:
-            match_devices.append(device)
-    if device_uuid not in [d.uuid for d in match_devices]:
-        add_record(
-            db,
-            logged_device_uuid=device_uuid,
-            description="Device is not a temperature sensor",
-        )
-        raise HTTPException(
-            status_code=404, detail="Device is not a temperature sensor"
-        )
+    match_device_type(db, device_uuid, DeviceType.TEMPERATURE_SENSOR)
     try:
         add_record(
             db,
@@ -245,17 +240,7 @@ def read_temperature(
 def read_pressure(
     device_uuid: str, db=Depends(get_db), manager=Depends(get_device_manager)
 ):
-    match_devices: List[SimDevice] = []
-    for device in db.get_devices():
-        if device.type == DeviceType.PRESSURE_SENSOR:
-            match_devices.append(device)
-    if device_uuid not in [d.uuid for d in match_devices]:
-        add_record(
-            db,
-            logged_device_uuid=device_uuid,
-            description="Device is not a pressure sensor",
-        )
-        raise HTTPException(status_code=404, detail="Device is not a pressure sensor")
+    match_device_type(db, device_uuid, DeviceType.PRESSURE_SENSOR)
     try:
         add_record(
             db,
@@ -289,17 +274,7 @@ def read_pressure(
 def read_humidity(
     device_uuid: str, db=Depends(get_db), manager=Depends(get_device_manager)
 ):
-    match_devices: List[SimDevice] = []
-    for device in db.get_devices():
-        if device.type == DeviceType.HUMIDITY_SENSOR:
-            match_devices.append(device)
-    if device_uuid not in [d.uuid for d in match_devices]:
-        add_record(
-            db,
-            logged_device_uuid=device_uuid,
-            description="Device is not a humidity sensor",
-        )
-        raise HTTPException(status_code=404, detail="Device is not a humidity sensor")
+    match_device_type(db, device_uuid, DeviceType.HUMIDITY_SENSOR)
     try:
         add_record(
             db,
@@ -331,15 +306,7 @@ def read_humidity(
 def get_dc_motor_speed(
     device_uuid: str, db=Depends(get_db), manager=Depends(get_device_manager)
 ):
-    match_devices: List[SimDevice] = []
-    for device in db.get_devices():
-        if device.type == DeviceType.DC_MOTOR:
-            match_devices.append(device)
-    if device_uuid not in [d.uuid for d in match_devices]:
-        add_record(
-            db, logged_device_uuid=device_uuid, description="Device is not a dc motor"
-        )
-        raise HTTPException(status_code=404, detail="Device is not a dc motor")
+    match_device_type(db, device_uuid, DeviceType.DC_MOTOR)
     try:
         add_record(
             db, logged_device_uuid=device_uuid, description=f"Reading dc motor speed"
@@ -368,15 +335,7 @@ def get_dc_motor_speed(
 def get_dc_motor_direction(
     device_uuid: str, db=Depends(get_db), manager=Depends(get_device_manager)
 ):
-    match_devices: List[SimDevice] = []
-    for device in db.get_devices():
-        if device.type == DeviceType.DC_MOTOR:
-            match_devices.append(device)
-    if device_uuid not in [d.uuid for d in match_devices]:
-        add_record(
-            db, logged_device_uuid=device_uuid, description="Device is not a dc motor"
-        )
-        raise HTTPException(status_code=404, detail="Device is not a dc motor")
+    match_device_type(db, device_uuid, DeviceType.DC_MOTOR)
     try:
         add_record(
             db,
@@ -399,22 +358,14 @@ def get_dc_motor_direction(
         raise HTTPException(status_code=404, detail=str(e))
 
 
-@app.put("/devices/dc_motor/set_speed", tags=["DC Motor Operations"])
+@app.put("/devices/dc_motor/set_speed", tags=["DC Motor Operations"], status_code=204)
 def set_dc_motor_speed(
     device_uuid: str,
     speed: float,
     db=Depends(get_db),
     manager=Depends(get_device_manager),
 ):
-    match_devices: List[SimDevice] = []
-    for device in db.get_devices():
-        if device.type == DeviceType.DC_MOTOR:
-            match_devices.append(device)
-    if device_uuid not in [d.uuid for d in match_devices]:
-        add_record(
-            db, logged_device_uuid=device_uuid, description="Device is not a dc motor"
-        )
-        raise HTTPException(status_code=404, detail="Device is not a dc motor")
+    match_device_type(db, device_uuid, DeviceType.DC_MOTOR)
     try:
         add_record(
             db,
@@ -431,22 +382,16 @@ def set_dc_motor_speed(
         raise HTTPException(status_code=404, detail=str(e))
 
 
-@app.put("/devices/dc_motor/set_direction", tags=["DC Motor Operations"])
+@app.put(
+    "/devices/dc_motor/set_direction", tags=["DC Motor Operations"], status_code=204
+)
 def set_dc_motor_direction(
     device_uuid: str,
     direction: MotorDirection,
     db=Depends(get_db),
     manager=Depends(get_device_manager),
 ):
-    match_devices: List[SimDevice] = []
-    for device in db.get_devices():
-        if device.type == DeviceType.DC_MOTOR:
-            match_devices.append(device)
-    if device_uuid not in [d.uuid for d in match_devices]:
-        add_record(
-            db, logged_device_uuid=device_uuid, description="Device is not a dc motor"
-        )
-        raise HTTPException(status_code=404, detail="Device is not a dc motor")
+    match_device_type(db, device_uuid, DeviceType.DC_MOTOR)
     try:
         add_record(
             db,
@@ -476,17 +421,7 @@ def set_dc_motor_direction(
 def get_stepper_motor_speed(
     device_uuid: str, db=Depends(get_db), manager=Depends(get_device_manager)
 ):
-    match_devices: List[SimDevice] = []
-    for device in db.get_devices():
-        if device.type == DeviceType.STEPPER_MOTOR:
-            match_devices.append(device)
-    if device_uuid not in [d.uuid for d in match_devices]:
-        add_record(
-            db,
-            logged_device_uuid=device_uuid,
-            description="Device is not a stepper motor",
-        )
-        raise HTTPException(status_code=404, detail="Device is not a stepper motor")
+    match_device_type(db, device_uuid, DeviceType.STEPPER_MOTOR)
     try:
         add_record(
             db,
@@ -517,17 +452,7 @@ def get_stepper_motor_speed(
 def get_stepper_motor_direction(
     device_uuid: str, db=Depends(get_db), manager=Depends(get_device_manager)
 ):
-    match_devices: List[SimDevice] = []
-    for device in db.get_devices():
-        if device.type == DeviceType.STEPPER_MOTOR:
-            match_devices.append(device)
-    if device_uuid not in [d.uuid for d in match_devices]:
-        add_record(
-            db,
-            logged_device_uuid=device_uuid,
-            description="Device is not a stepper motor",
-        )
-        raise HTTPException(status_code=404, detail="Device is not a stepper motor")
+    match_device_type(db, device_uuid, DeviceType.STEPPER_MOTOR)
     try:
         add_record(
             db,
@@ -558,17 +483,7 @@ def get_stepper_motor_direction(
 def get_stepper_motor_acceleration(
     device_uuid: str, db=Depends(get_db), manager=Depends(get_device_manager)
 ):
-    match_devices: List[SimDevice] = []
-    for device in db.get_devices():
-        if device.type == DeviceType.STEPPER_MOTOR:
-            match_devices.append(device)
-    if device_uuid not in [d.uuid for d in match_devices]:
-        add_record(
-            db,
-            logged_device_uuid=device_uuid,
-            description="Device is not a stepper motor",
-        )
-        raise HTTPException(status_code=404, detail="Device is not a stepper motor")
+    match_device_type(db, device_uuid, DeviceType.STEPPER_MOTOR)
     try:
         add_record(
             db,
@@ -599,17 +514,7 @@ def get_stepper_motor_acceleration(
 def get_stepper_motor_location(
     device_uuid: str, db=Depends(get_db), manager=Depends(get_device_manager)
 ):
-    match_devices: List[SimDevice] = []
-    for device in db.get_devices():
-        if device.type == DeviceType.STEPPER_MOTOR:
-            match_devices.append(device)
-    if device_uuid not in [d.uuid for d in match_devices]:
-        add_record(
-            db,
-            logged_device_uuid=device_uuid,
-            description="Device is not a stepper motor",
-        )
-        raise HTTPException(status_code=404, detail="Device is not a stepper motor")
+    match_device_type(db, device_uuid, DeviceType.STEPPER_MOTOR)
     try:
         add_record(
             db,
@@ -632,24 +537,18 @@ def get_stepper_motor_location(
         raise HTTPException(status_code=404, detail=str(e))
 
 
-@app.put("/devices/stepper_motor/set_speed", tags=["Stepper Motor Operations"])
+@app.put(
+    "/devices/stepper_motor/set_speed",
+    tags=["Stepper Motor Operations"],
+    status_code=204,
+)
 def set_stepper_motor_speed(
     device_uuid: str,
     speed: float,
     db=Depends(get_db),
     manager=Depends(get_device_manager),
 ):
-    match_devices: List[SimDevice] = []
-    for device in db.get_devices():
-        if device.type == DeviceType.STEPPER_MOTOR:
-            match_devices.append(device)
-    if device_uuid not in [d.uuid for d in match_devices]:
-        add_record(
-            db,
-            logged_device_uuid=device_uuid,
-            description="Device is not a stepper motor",
-        )
-        raise HTTPException(status_code=404, detail="Device is not a stepper motor")
+    match_device_type(db, device_uuid, DeviceType.STEPPER_MOTOR)
     try:
         add_record(
             db,
@@ -666,24 +565,18 @@ def set_stepper_motor_speed(
         raise HTTPException(status_code=404, detail=str(e))
 
 
-@app.put("/devices/stepper_motor/set_direction", tags=["Stepper Motor Operations"])
+@app.put(
+    "/devices/stepper_motor/set_direction",
+    tags=["Stepper Motor Operations"],
+    status_code=204,
+)
 def set_stepper_motor_direction(
     device_uuid: str,
     direction: MotorDirection,
     db=Depends(get_db),
     manager=Depends(get_device_manager),
 ):
-    match_devices: List[SimDevice] = []
-    for device in db.get_devices():
-        if device.type == DeviceType.STEPPER_MOTOR:
-            match_devices.append(device)
-    if device_uuid not in [d.uuid for d in match_devices]:
-        add_record(
-            db,
-            logged_device_uuid=device_uuid,
-            description="Device is not a stepper motor",
-        )
-        raise HTTPException(status_code=404, detail="Device is not a stepper motor")
+    match_device_type(db, device_uuid, DeviceType.STEPPER_MOTOR)
     try:
         add_record(
             db,
@@ -700,24 +593,18 @@ def set_stepper_motor_direction(
         raise HTTPException(status_code=404, detail=str(e))
 
 
-@app.put("/devices/stepper_motor/set_acceleration", tags=["Stepper Motor Operations"])
+@app.put(
+    "/devices/stepper_motor/set_acceleration",
+    tags=["Stepper Motor Operations"],
+    status_code=204,
+)
 def set_stepper_motor_acceleration(
     device_uuid: str,
     acceleration: float,
     db=Depends(get_db),
     manager=Depends(get_device_manager),
 ):
-    match_devices: List[SimDevice] = []
-    for device in db.get_devices():
-        if device.type == DeviceType.STEPPER_MOTOR:
-            match_devices.append(device)
-    if device_uuid not in [d.uuid for d in match_devices]:
-        add_record(
-            db,
-            logged_device_uuid=device_uuid,
-            description="Device is not a stepper motor",
-        )
-        raise HTTPException(status_code=404, detail="Device is not a stepper motor")
+    match_device_type(db, device_uuid, DeviceType.STEPPER_MOTOR)
     try:
         add_record(
             db,
@@ -735,7 +622,9 @@ def set_stepper_motor_acceleration(
 
 
 @app.put(
-    "/devices/stepper_motor/set_absolute_location", tags=["Stepper Motor Operations"]
+    "/devices/stepper_motor/set_absolute_location",
+    tags=["Stepper Motor Operations"],
+    status_code=204,
 )
 def set_stepper_motor_absolute_location(
     device_uuid: str,
@@ -743,17 +632,7 @@ def set_stepper_motor_absolute_location(
     db=Depends(get_db),
     manager=Depends(get_device_manager),
 ):
-    match_devices: List[SimDevice] = []
-    for device in db.get_devices():
-        if device.type == DeviceType.STEPPER_MOTOR:
-            match_devices.append(device)
-    if device_uuid not in [d.uuid for d in match_devices]:
-        add_record(
-            db,
-            logged_device_uuid=device_uuid,
-            description="Device is not a stepper motor",
-        )
-        raise HTTPException(status_code=404, detail="Device is not a stepper motor")
+    match_device_type(db, device_uuid, DeviceType.STEPPER_MOTOR)
     try:
         add_record(
             db,
@@ -771,7 +650,9 @@ def set_stepper_motor_absolute_location(
 
 
 @app.put(
-    "/devices/stepper_motor/set_relative_location", tags=["Stepper Motor Operations"]
+    "/devices/stepper_motor/set_relative_location",
+    tags=["Stepper Motor Operations"],
+    status_code=204,
 )
 def set_stepper_motor_relative_location(
     device_uuid: str,
@@ -779,17 +660,7 @@ def set_stepper_motor_relative_location(
     db=Depends(get_db),
     manager=Depends(get_device_manager),
 ):
-    match_devices: List[SimDevice] = []
-    for device in db.get_devices():
-        if device.type == DeviceType.STEPPER_MOTOR:
-            match_devices.append(device)
-    if device_uuid not in [d.uuid for d in match_devices]:
-        add_record(
-            db,
-            logged_device_uuid=device_uuid,
-            description="Device is not a stepper motor",
-        )
-        raise HTTPException(status_code=404, detail="Device is not a stepper motor")
+    match_device_type(db, device_uuid, DeviceType.STEPPER_MOTOR)
     try:
         add_record(
             db,
@@ -826,11 +697,8 @@ def list_logs_by_time(
     db=Depends(get_db),
 ):
     add_record(db, description=f"Listed log records from {start_time} to {end_time}")
-    matched_logs: List[LogRecord] = []
-    for record in db.get_log():
-        if start_time <= record.timestamp <= end_time:
-            matched_logs.append(record)
-    return matched_logs
+    matching_logs = [r for r in db.get_log() if start_time <= r.timestamp <= end_time]
+    return matching_logs
 
 
 @app.post("/logs/", response_model=LogRecord, tags=["Log Management"])
@@ -840,9 +708,7 @@ def create_entry(
     try:
         record = LogRecord(
             uuid=uuid.uuid4(),
-            user=socket.gethostname()
-            + "-"
-            + socket.gethostbyname(socket.gethostname()),
+            user=f"{socket.gethostname()}-{socket.gethostbyname(socket.gethostname())}",
             device_uuid=device_uuid,
             action=action,
             description=description,

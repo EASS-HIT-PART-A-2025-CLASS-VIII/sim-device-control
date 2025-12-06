@@ -77,7 +77,7 @@ def test_delete_device():
     payload = make_device_payload("uuid-103")
     client.post("/devices/", json=payload)
     r = client.delete(f"/devices/uuid-103")
-    assert r.status_code == 200
+    assert r.status_code == 204
     r = client.get("/devices/")
     assert r.status_code == 200
     assert all(d.get("uuid") != "uuid-103" for d in r.json())
@@ -188,7 +188,7 @@ def test_set_dc_motor_speed():
         f"/devices/dc_motor/set_speed",
         params={"device_uuid": "uuid-306", "speed": 75.0},
     )
-    assert r.status_code == 200
+    assert r.status_code == 204
     r2 = client.get(f"/devices/dc_motor/get_speed", params={"device_uuid": "uuid-306"})
     assert r2.status_code == 200
     assert r2.json() == 75.0
@@ -204,7 +204,7 @@ def test_set_dc_motor_direction():
             "direction": schemas.MotorDirection.FORWARD.value,
         },
     )
-    assert r.status_code == 200
+    assert r.status_code == 204
     r2 = client.get(
         f"/devices/dc_motor/get_direction", params={"device_uuid": "uuid-307"}
     )
@@ -264,7 +264,7 @@ def test_set_stepper_motor_speed():
         f"/devices/stepper_motor/set_speed",
         params={"device_uuid": "uuid-312", "speed": 50.0},
     )
-    assert r.status_code == 200
+    assert r.status_code == 204
     r2 = client.get(
         f"/devices/stepper_motor/get_speed", params={"device_uuid": "uuid-312"}
     )
@@ -282,7 +282,7 @@ def test_set_stepper_motor_direction():
             "direction": schemas.MotorDirection.BACKWARD.value,
         },
     )
-    assert r.status_code == 200
+    assert r.status_code == 204
     r2 = client.get(
         f"/devices/stepper_motor/get_direction", params={"device_uuid": "uuid-313"}
     )
@@ -297,7 +297,7 @@ def test_set_stepper_motor_acceleration():
         f"/devices/stepper_motor/set_acceleration",
         params={"device_uuid": "uuid-314", "acceleration": 10.0},
     )
-    assert r.status_code == 200
+    assert r.status_code == 204
     r2 = client.get(
         f"/devices/stepper_motor/get_acceleration", params={"device_uuid": "uuid-314"}
     )
@@ -312,7 +312,7 @@ def test_move_stepper_motor_absolute():
         f"/devices/stepper_motor/set_absolute_location",
         params={"device_uuid": "uuid-315", "absolute_location": 100},
     )
-    assert r.status_code == 200
+    assert r.status_code == 204
     r2 = client.get(
         f"/devices/stepper_motor/get_location", params={"device_uuid": "uuid-315"}
     )
@@ -331,7 +331,7 @@ def test_move_stepper_motor_relative():
         f"/devices/stepper_motor/set_relative_location",
         params={"device_uuid": "uuid-316", "relative_location": 25},
     )
-    assert r.status_code == 200
+    assert r.status_code == 204
     r2 = client.get(
         f"/devices/stepper_motor/get_location", params={"device_uuid": "uuid-316"}
     )

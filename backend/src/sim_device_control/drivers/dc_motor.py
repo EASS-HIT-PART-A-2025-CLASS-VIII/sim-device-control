@@ -4,11 +4,10 @@ from ..schemas import MotorDirection
 
 
 class DcMotorDriver(BaseSensorDriver, BaseControllerDriver):
-    speed: float = 0.0
-    direction: MotorDirection = MotorDirection.FORWARD
-
     def __init__(self, uuid: str):
         self.uuid = uuid
+        self.speed = 0.0
+        self.direction = MotorDirection.FORWARD
 
     def _read_data(self):
         return {"speed": self.speed, "direction": self.direction}

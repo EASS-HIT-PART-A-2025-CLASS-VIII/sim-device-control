@@ -1,5 +1,5 @@
 from typing import Any, Dict, List, Union, cast
-from ..schemas import DeviceType, SimDevice
+from ..schemas import DeviceType, MotorDirection, SimDevice
 from .base.base_controller import BaseControllerDriver
 from .base.base_sensor import BaseSensorDriver
 from .temperature import TemperatureSensorDriver
@@ -27,7 +27,7 @@ class DeviceManager:
     }
 
     def add_device(self, device: SimDevice):
-        if device.uuid in self.drivers:
+        if device.uuid in [d.uuid for d in self.drivers]:
             raise ValueError(f"Device {device.uuid} already exists")
         try:
             driver_class = self.driver_map[device.type]
@@ -102,7 +102,7 @@ class DeviceManager:
         device = cast(DcMotorDriver, self._get_device(uuid))
         device.set_speed(speed)
 
-    def set_dc_motor_direction(self, uuid: str, direction: DeviceType):
+    def set_dc_motor_direction(self, uuid: str, direction: MotorDirection):
         device = cast(DcMotorDriver, self._get_device(uuid))
         device.set_direction(direction)
 
@@ -130,7 +130,7 @@ class DeviceManager:
         device = cast(StepperMotorDriver, self._get_device(uuid))
         device.set_speed(speed)
 
-    def set_stepper_motor_direction(self, uuid: str, direction: DeviceType):
+    def set_stepper_motor_direction(self, uuid: str, direction: MotorDirection):
         device = cast(StepperMotorDriver, self._get_device(uuid))
         device.set_direction(direction)
 

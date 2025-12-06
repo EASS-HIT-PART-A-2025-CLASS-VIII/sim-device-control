@@ -4,13 +4,12 @@ from ..schemas import MotorDirection
 
 
 class StepperMotorDriver(BaseSensorDriver, BaseControllerDriver):
-    speed: float = 0.0
-    acceleration: float = 0.0
-    location: int = 0
-    direction: MotorDirection = MotorDirection.FORWARD
-
     def __init__(self, uuid: str):
         self.uuid = uuid
+        self.speed = 0.0
+        self.acceleration = 0.0
+        self.location = 0
+        self.direction = MotorDirection.FORWARD
 
     def _read_data(self):
         return {

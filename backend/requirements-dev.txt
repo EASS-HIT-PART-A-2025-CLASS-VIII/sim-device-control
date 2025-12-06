@@ -1,2 +1,5 @@
 # Development dependencies
 # Add your development dependencies here (e.g., pytest, black, flake8)
+
+pytest
+ruff
