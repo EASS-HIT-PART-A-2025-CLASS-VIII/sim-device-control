@@ -148,7 +148,7 @@ def delete_device(
 # region all device types
 
 
-@app.get("/devices/get_status", response_model=str, tags=["All Device Types"])
+@app.get("/devices/get_status", response_model=str, tags=["Generic Device Operations"])
 def get_device_status(
     device_uuid: str, db=Depends(get_db), manager=Depends(get_device_manager)
 ):
@@ -168,7 +168,7 @@ def get_device_status(
         raise HTTPException(status_code=404, detail=str(e))
 
 
-@app.get("/devices/get_version", response_model=str, tags=["All Device Types"])
+@app.get("/devices/get_version", response_model=str, tags=["Generic Device Operations"])
 def get_device_version(
     device_uuid: str, db=Depends(get_db), manager=Depends(get_device_manager)
 ):
