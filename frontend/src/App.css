@@ -1,8 +1,16 @@
 #root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  padding: 0;
   text-align: center;
+}
+
+html, body {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  padding: 0;
 }
 
 .logo {
@@ -39,4 +47,32 @@
 
 .read-the-docs {
   color: #888;
+}
+
+.container {
+    display: flex;
+    height: 100vh;
+    width: 100%;
+}
+
+.left-side, .right-side {
+    flex: 1;
+    padding: 30px;
+    box-sizing: border-box;
+    min-width: 0; /* prevent overflow from long content */
+}
+
+.left-side {
+    border-right: 1px solid #e6e6e6;
+}
+
+.right-side {
+    border-left: 1px solid #e6e6e6;
+}
+
+@media (max-width: 700px) {
+  .container {
+    flex-direction: column;
+    height: auto;
+  }
 }
