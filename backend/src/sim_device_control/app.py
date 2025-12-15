@@ -105,9 +105,6 @@ def create_device(
 def get_devices_by_type(device_type: DeviceType, db=Depends(get_db)):
     add_record(db, description=f"Attempting to get devices by type {device_type}")
     matching_devices = [d for d in db.get_devices() if d.type == device_type]
-    if len(matching_devices) == 0:
-        add_record(db, description=f"No devices found for type {device_type}")
-        raise HTTPException(status_code=404, detail="Device type not found")
     add_record(
         db, description=f"Found {len(matching_devices)} devices of type {device_type}"
     )

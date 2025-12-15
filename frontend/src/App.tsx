@@ -1,10 +1,19 @@
 import './App.css'
 import { useState } from 'react'
-import ReactComponent from './components/react'
-import ViteComponent from './components/vite'
+import type { ComponentType } from 'react'
+import TemperatureSensor from './components/device-controller'
 
 function App() {
   const [count, setCount] = useState(0)
+
+  let Panel: ComponentType<any>
+  switch (count % 2) {
+    case 0:
+      Panel = TemperatureSensor
+      break
+    default:
+      Panel = TemperatureSensor
+  }
 
   return (
     <>
@@ -29,7 +38,7 @@ function App() {
       <div className="right-side">
           <h1>Right Side</h1>
 
-          {count % 2 === 0 ? <ReactComponent /> : <ViteComponent />}
+          <Panel />
 
       </div>
     </div>
