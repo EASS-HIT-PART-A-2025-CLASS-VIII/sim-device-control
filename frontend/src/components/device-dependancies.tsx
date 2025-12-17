@@ -13,14 +13,16 @@ export enum DeviceType {
     HumiditySensor = "humidity_sensor",
     DcMotor = "dc_motor",
     StepperMotor = "stepper_motor",
+    All = "all",
 }
 
 export interface DeviceInfo {
     uuid: string;
-    name: string;
-    status: string;
-    description: string;
     type: DeviceType;
+    name: string;
+    description: string;
+    version: string;
+    status: string;
 }
 
 const spinnerChars = ['|', '/', '—', '\\'];
@@ -56,8 +58,7 @@ export async function fetchDevices
     setLoading(LoadingSection.FetchingDevices);
     setError(null);
     try {
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        const response = await fetch('/devices/type/' + deviceType);
+        const response = deviceType === DeviceType.All ? await fetch('/devices/') : await fetch('/devices/type/' + deviceType);
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -70,6 +71,7 @@ export async function fetchDevices
                 status: item.status,
                 description: item.description,
                 type: item.type,
+                version: item.version,
             });
         }
         setDevices(mapped);
@@ -168,6 +170,56 @@ export async function updateName
             `/devices/update_name/${deviceUuid}?${params.toString()}`,
             {
                 method: 'PUT',
+            }
+        );
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+    } catch (err: any) {
+        setError(err.message || "Unknown error");
+    } finally {
+        setLoading(LoadingSection.None);
+    }
+}
+
+export async function deleteDevice
+    (deviceUuid: string,
+        setLoading: (loading: LoadingSection) => void,
+        setError: (error: string | null) => void) {
+    setLoading(LoadingSection.UsingDevice);
+    setError(null);
+    try {
+        const response = await fetch(
+            `/devices/${deviceUuid}`,
+            {
+                method: 'DELETE',
+            }
+        );
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+    } catch (err: any) {
+        setError(err.message || "Unknown error");
+    } finally {
+        setLoading(LoadingSection.None);
+    }
+}
+
+export async function createDevice
+    (deviceInfo: DeviceInfo,
+        setLoading: (loading: LoadingSection) => void,
+        setError: (error: string | null) => void) {
+    setLoading(LoadingSection.UsingDevice);
+    setError(null);
+    try {
+        const response = await fetch(
+            `/devices/`,
+            {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(deviceInfo),
             }
         );
         if (!response.ok) {

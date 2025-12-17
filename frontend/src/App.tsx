@@ -1,41 +1,58 @@
 import './App.css'
 import { useState } from 'react'
 import type { ComponentType } from 'react'
-import { DeviceType } from './components/device-dependancies'
+import DeviceList from './components/device-list'
 import TemperatureSensor from './components/temperature-sensor'
 import PressureSensor from './components/pressure-sensor'
 import HumiditySensor from './components/humidity-sensor'
 
+export enum PanelType {
+    None = "",
+    DeviceList = "device_list",
+    TemperatureSensor = "temperature_sensor",
+    PressureSensor = "pressure_sensor",
+    HumiditySensor = "humidity_sensor",
+    DcMotor = "dc_motor",
+    StepperMotor = "stepper_motor",
+    Logs = "logs",
+}
+
 const deviceTypeOptions = [
-  { type: DeviceType.TemperatureSensor,
+  { type: PanelType.DeviceList,
+    label: 'Device List',
+    description: 'View or create devices' },
+  { type: PanelType.TemperatureSensor,
     label: 'Temperature Sensor',
     description: 'Temperature sensor device' },
-  { type: DeviceType.PressureSensor,
+  { type: PanelType.PressureSensor,
     label: 'Pressure Sensor',
     description: 'Pressure sensor device' },
-    { type: DeviceType.HumiditySensor,
+  { type: PanelType.HumiditySensor,
     label: 'Humidity Sensor',
     description: 'Humidity sensor device' },
 ]
 
 function App() {
-  const [selectedDeviceType, setSelectedDeviceType] = useState<DeviceType | null>(null)
+  const [selectedPanel, setSelectedPanel] = useState<PanelType | null>(null)
 
   let Panel: ComponentType<any>
-  switch (selectedDeviceType) {
-    case DeviceType.TemperatureSensor:
+  switch (selectedPanel) {
+    case PanelType.DeviceList:
+      Panel = DeviceList
+      break
+    case PanelType.TemperatureSensor:
       Panel = TemperatureSensor
       break
-    case DeviceType.PressureSensor:
+    case PanelType.PressureSensor:
       Panel = PressureSensor
       break
-    case DeviceType.HumiditySensor:
+    case PanelType.HumiditySensor:
       Panel = HumiditySensor
       break
     default:
       Panel = () => (
         <div>
-          <h2>Select Operation from the Action Type Selector Panel</h2>
+          <h2>Select which panel to view from the "View Selector" on the left.</h2>
         </div>
       )
   }
@@ -46,7 +63,7 @@ function App() {
 
         <div className="left-side">
 
-          <h1>Action Type Selector</h1>
+          <h1>View Selector</h1>
 
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
@@ -59,20 +76,20 @@ function App() {
               {deviceTypeOptions.map((option) => (
                 <tr
                   key={option.type}
-                  onClick={() => setSelectedDeviceType(selectedDeviceType === option.type ? null : option.type)}
+                  onClick={() => setSelectedPanel(selectedPanel === option.type ? null : option.type)}
                   style={{
                     cursor: 'pointer',
-                    background: selectedDeviceType === option.type ? '#f5f7ff' : 'transparent',
+                    background: selectedPanel === option.type ? '#f5f7ff' : 'transparent',
                     transition: 'background 0.15s'
                   }}
                 >
-                  <td style={{ borderBottom: '1px solid #f0f0f0', padding: '8px', color: selectedDeviceType === option.type ? '#000' : '#e6e6e6' }}>{option.label}</td>
-                  <td style={{ borderBottom: '1px solid #f0f0f0', padding: '8px', color: selectedDeviceType === option.type ? '#000' : '#e6e6e6' }}>{option.description}</td>
+                  <td style={{ borderBottom: '1px solid #f0f0f0', padding: '8px', color: selectedPanel === option.type ? '#000' : '#e6e6e6' }}>{option.label}</td>
+                  <td style={{ borderBottom: '1px solid #f0f0f0', padding: '8px', color: selectedPanel === option.type ? '#000' : '#e6e6e6' }}>{option.description}</td>
                 </tr>
               ))}
             </tbody>
           </table>
-          
+
         </div>
 
         <div className="right-side">

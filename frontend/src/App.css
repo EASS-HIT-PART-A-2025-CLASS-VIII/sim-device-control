@@ -59,7 +59,8 @@ html, body {
     flex: 1;
     padding: 30px;
     box-sizing: border-box;
-    min-width: 0; /* prevent overflow from long content */
+    min-width: 0;
+    overflow-y: auto;
 }
 
 .left-side {

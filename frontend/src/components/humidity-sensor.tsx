@@ -132,8 +132,6 @@ export default function HumiditySensor() {
                     }}
                     disabled={loading !== LoadingSection.None || !selectedDevice}
                 />
-                <span>Device Status:</span>
-                <span>{selectedDevice ? selectedDevice.status : ""}</span>
                 <span>Device uuid:</span>
                 <span>{selectedDevice ? selectedDevice.uuid : ""}</span>
             </div>
