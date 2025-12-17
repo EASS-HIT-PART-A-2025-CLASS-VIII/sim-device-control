@@ -64,6 +64,29 @@ def test_get_devices_by_type():
     assert any(d["uuid"] == payload["uuid"] for d in matched)
 
 
+def test_update_device_description():
+    payload = make_device_payload("uuid-102")
+    client.post("/devices/", json=payload)
+    updated_description = "an updated description"
+    r = client.put(
+        f"/devices/update_description/uuid-102",
+        params={"new_description": updated_description},
+    )
+    assert r.status_code == 200
+    updated = r.json()
+    assert updated["description"] == updated_description
+
+
+def test_update_device_name():
+    payload = make_device_payload("uuid-103")
+    client.post("/devices/", json=payload)
+    updated_name = "renamed-device"
+    r = client.put(f"/devices/update_name/uuid-103", params={"new_name": updated_name})
+    assert r.status_code == 200
+    updated = r.json()
+    assert updated["name"] == updated_name
+
+
 # def test_update_device():
 #     payload = make_device_payload("uuid-102")
 #     client.post("/devices/", json = payload)
@@ -74,13 +97,13 @@ def test_get_devices_by_type():
 
 
 def test_delete_device():
-    payload = make_device_payload("uuid-103")
+    payload = make_device_payload("uuid-104")
     client.post("/devices/", json=payload)
-    r = client.delete(f"/devices/uuid-103")
+    r = client.delete(f"/devices/uuid-104")
     assert r.status_code == 204
     r = client.get("/devices/")
     assert r.status_code == 200
-    assert all(d.get("uuid") != "uuid-103" for d in r.json())
+    assert all(d.get("uuid") != "uuid-104" for d in r.json())
 
 
 # endregion

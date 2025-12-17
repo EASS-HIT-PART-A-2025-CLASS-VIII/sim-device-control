@@ -111,6 +111,50 @@ def get_devices_by_type(device_type: DeviceType, db=Depends(get_db)):
     return matching_devices
 
 
+@app.put(
+    "/devices/update_description/{device_uuid}",
+    response_model=SimDevice,
+    tags=["General Device Control"],
+)
+def update_device_description(
+    device_uuid: str, new_description: str, db=Depends(get_db)
+):
+    try:
+        add_record(db, description=f"Attempting to update device {device_uuid}")
+        devices = db.get_devices()
+        for device in devices:
+            if device.uuid == device_uuid:
+                device.description = new_description
+                db.update_device(device_uuid, device)
+                add_record(db, description=f"Successfully updated device {device_uuid}")
+                return device
+        raise ValueError("Device not found")
+    except ValueError as e:
+        add_record(db, description=f"Failed to update device {device_uuid}: {str(e)}")
+        raise HTTPException(status_code=404, detail=str(e))
+
+
+@app.put(
+    "/devices/update_name/{device_uuid}",
+    response_model=SimDevice,
+    tags=["General Device Control"],
+)
+def update_device_name(device_uuid: str, new_name: str, db=Depends(get_db)):
+    try:
+        add_record(db, description=f"Attempting to update device {device_uuid}")
+        devices = db.get_devices()
+        for device in devices:
+            if device.uuid == device_uuid:
+                device.name = new_name
+                db.update_device(device_uuid, device)
+                add_record(db, description=f"Successfully updated device {device_uuid}")
+                return device
+        raise ValueError("Device not found")
+    except ValueError as e:
+        add_record(db, description=f"Failed to update device {device_uuid}: {str(e)}")
+        raise HTTPException(status_code=404, detail=str(e))
+
+
 # You can't actually change an existing device's info, disabled in case it would be needed later
 #
 # @app.put("/devices/{device_uuid}", response_model = SimDevice)
