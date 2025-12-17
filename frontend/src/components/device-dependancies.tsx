@@ -146,7 +146,6 @@ export async function updateDescription
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
-        const data = await response.json();
     } catch (err: any) {
         setError(err.message || "Unknown error");
     } finally {
@@ -174,7 +173,6 @@ export async function updateName
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
-        const data = await response.json();
     } catch (err: any) {
         setError(err.message || "Unknown error");
     } finally {

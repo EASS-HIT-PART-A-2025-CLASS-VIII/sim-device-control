@@ -45,7 +45,9 @@ function App() {
       <div className="container">
 
         <div className="left-side">
+
           <h1>Action Type Selector</h1>
+
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
               <tr>
@@ -70,8 +72,9 @@ function App() {
               ))}
             </tbody>
           </table>
-
+          
         </div>
+
         <div className="right-side">
           <h1>Control Panel</h1>
 
@@ -79,8 +82,6 @@ function App() {
 
         </div>
       </div>
-
-
     </>
   )
 }
