@@ -18,8 +18,9 @@ class SimDevice(BaseModel):
     uuid: str
     type: DeviceType
     name: str
-    status: str
     description: str
+    status: str
+    version: str
 
 
 class LogRecord(BaseModel):

@@ -10,7 +10,7 @@ class TemperatureSensorDriver(BaseSensorDriver):
         return round(random.uniform(-20.0, 50.0), 2)
 
     def _get_status(self):
-        return "Online"
+        return "Simulation"
 
     def _get_version(self):
         return "1.0.0"

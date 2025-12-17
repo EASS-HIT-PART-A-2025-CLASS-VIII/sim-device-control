@@ -32,7 +32,7 @@ class StepperMotorDriver(BaseSensorDriver, BaseControllerDriver):
             self.location += kwargs["relative_location"]
 
     def _get_status(self):
-        return "Online"
+        return "Simulation"
 
     def _get_version(self):
         return "1.0.0"

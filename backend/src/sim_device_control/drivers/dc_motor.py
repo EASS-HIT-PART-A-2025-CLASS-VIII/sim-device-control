@@ -19,7 +19,7 @@ class DcMotorDriver(BaseSensorDriver, BaseControllerDriver):
             self.direction = kwargs["direction"]
 
     def _get_status(self):
-        return "Online"
+        return "Simulation"
 
     def _get_version(self):
         return "1.0.0"
