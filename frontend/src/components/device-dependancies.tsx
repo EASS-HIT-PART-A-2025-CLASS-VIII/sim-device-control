@@ -15,6 +15,14 @@ export enum DeviceType {
     StepperMotor = "stepper_motor",
 }
 
+export interface DeviceInfo {
+    uuid: string;
+    name: string;
+    status: string;
+    description: string;
+    type: DeviceType;
+}
+
 const spinnerChars = ['|', '/', '—', '\\'];
 
 export function useLoadingSpinner(initial: LoadingSection = LoadingSection.None) {
@@ -44,7 +52,7 @@ export async function fetchDevices
     (deviceType: DeviceType,
         setLoading: (loading: LoadingSection) => void,
         setError: (error: string | null) => void,
-        setDevices: (devices: Array<{ uuid: string; name: string; status: string; description: string }>) => void) {
+        setDevices: (devices: Array<DeviceInfo>) => void) {
     setLoading(LoadingSection.FetchingDevices);
     setError(null);
     try {
@@ -54,14 +62,16 @@ export async function fetchDevices
             throw new Error(`HTTP error! status: ${response.status}`);
         }
         const data = await response.json();
-        const mapped = Array.isArray(data)
-            ? data.map((d: any) => ({
-                uuid: d.uuid,
-                name: d.name,
-                status: d.status,
-                description: d.description,
-            }))
-            : [];
+        const mapped = Array<DeviceInfo>();
+        for (const item of data) {
+            mapped.push({
+                uuid: item.uuid,
+                name: item.name,
+                status: item.status,
+                description: item.description,
+                type: item.type,
+            });
+        }
         setDevices(mapped);
     } catch (err: any) {
         setError(err.message || "Unknown error");
@@ -116,99 +126,58 @@ export async function readVersion
     }
 }
 
-// export default function TemperatureSensor() {
-//     const [temperature, setTemperature] = useState<number | null>(null);
-//     const [error, setError] = useState<string | null>(null);
-//     const [status, setStatus] = useState<string | null>(null);
-//     const [version, setVersion] = useState<string | null>(null);
-//     const [selectedDevice, setSelectedDevice] = useState<string>("");
-//     const [devices, setDevices] = useState<Array<{ uuid: string; name: string; status: string; description: string }>>([]);
-//     const { loading, setLoading, spinnerChar } = useLoadingSpinner();
+export async function updateDescription
+    (deviceUuid: string,
+        newDescription: string,
+        setLoading: (loading: LoadingSection) => void,
+        setError: (error: string | null) => void) {
+    setLoading(LoadingSection.UsingDevice);
+    setError(null);
+    try {
+        const params = new URLSearchParams({
+        new_description: newDescription,
+        });
+        const response = await fetch(
+            `/devices/update_description/${deviceUuid}?${params.toString()}`,
+            {
+                method: 'PUT',
+            }
+        );
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+    } catch (err: any) {
+        setError(err.message || "Unknown error");
+    } finally {
+        setLoading(LoadingSection.None);
+    }
+}
 
-//     async function readTemperature() {
-//         setLoading(LoadingSection.UsingDevice);
-//         setError(null);
-//         try {
-//             const response = await fetch(
-//                 `/devices/temperature_sensor/read_temperature?device_uuid=${selectedDevice}`
-//             );
-//             if (!response.ok) {
-//                 throw new Error(`HTTP error! status: ${response.status}`);
-//             }
-//             const textData = await response.text();
-//             const temperatureNumber = parseFloat(textData);
-//             if (isNaN(temperatureNumber)) {
-//                 throw new Error("Invalid temperature value");
-//             }
-//             setTemperature(temperatureNumber);
-//         } catch (err: any) {
-//             setError(err.message || "Unknown error");
-//         } finally {
-//             setLoading(LoadingSection.None);
-//         }
-//     }
-
-//     return (
-//         <div>
-//             <h2>Temperature Sensor Component</h2>
-
-//             <select value={selectedDevice} onChange={(e) => setSelectedDevice(e.target.value)} disabled={loading !== LoadingSection.None || devices.length === 0}>
-//                 <option value="">
-//                     {devices.length === 0 ? 'No devices' : 'Select device'}
-//                 </option>
-//                 {devices.map((d) => (
-//                     <option key={d.uuid} value={d.uuid}>
-//                         {d.name}
-//                     </option>
-//                 ))}
-//             </select>
-
-//             <button onClick={() => {
-//                 fetchDevices(DeviceType.TemperatureSensor, setLoading, setError, setDevices);
-//                 setStatus(null);
-//                 setVersion(null);
-//                 setTemperature(null);
-//             }}
-//                 disabled={loading === LoadingSection.FetchingDevices}>
-//                 {loading === LoadingSection.FetchingDevices ? spinnerChar : "⟳"}
-//             </button>
-
-//             <br />
-//             <br />
-
-//             <button onClick={() => readStatus(selectedDevice, setStatus as any, setLoading, setError)} disabled={loading === LoadingSection.UsingDevice || !selectedDevice}>
-//                 {loading === LoadingSection.UsingDevice ? spinnerChar : "Get Status"}
-//             </button>
-
-//             <br />
-//             <br />
-
-//             {status !== null && <span>Status: {status}</span>}
-
-//             <br />
-//             <br />
-
-//             <button onClick={() => readVersion(selectedDevice, setVersion as any, setLoading, setError)} disabled={loading === LoadingSection.UsingDevice || !selectedDevice}>
-//                 {loading === LoadingSection.UsingDevice ? spinnerChar : "Get Version"}
-//             </button>
-
-//             <br />
-//             <br />
-
-//             {version !== null && <span>Version: {version}</span>}
-
-//             <br />
-//             <br />
-
-//             <button onClick={readTemperature} disabled={loading === LoadingSection.UsingDevice || !selectedDevice}>
-//                 {loading === LoadingSection.UsingDevice ? spinnerChar : "Read Temperature"}
-//             </button>
-
-//             <br />
-//             <br />
-
-//             {temperature !== null && <span>Temperature: {temperature}°C</span>}
-//             {error && <div style={{ color: "red" }}>Error: {error}</div>}
-//         </div>
-//     );
-// }
+export async function updateName
+    (deviceUuid: string,
+        newName: string,
+        setLoading: (loading: LoadingSection) => void,
+        setError: (error: string | null) => void) {
+    setLoading(LoadingSection.UsingDevice);
+    setError(null);
+    try {
+        const params = new URLSearchParams({
+        new_name: newName,
+        });
+        const response = await fetch(
+            `/devices/update_name/${deviceUuid}?${params.toString()}`,
+            {
+                method: 'PUT',
+            }
+        );
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+    } catch (err: any) {
+        setError(err.message || "Unknown error");
+    } finally {
+        setLoading(LoadingSection.None);
+    }
+}

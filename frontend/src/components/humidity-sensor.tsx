@@ -6,6 +6,9 @@ import {
   fetchDevices,
   readStatus,
   readVersion,
+  updateDescription,
+  updateName,
+  type DeviceInfo,
 } from "./device-dependancies";
 
 export default function HumiditySensor() {
@@ -13,8 +16,10 @@ export default function HumiditySensor() {
     const [error, setError] = useState<string | null>(null);
     const [status, setStatus] = useState<string | null>(null);
     const [version, setVersion] = useState<string | null>(null);
-    const [selectedDevice, setSelectedDevice] = useState<string>("");
-    const [devices, setDevices] = useState<Array<{ uuid: string; name: string; status: string; description: string }>>([]);
+    const [selectedDevice, setSelectedDevice] = useState<DeviceInfo | null>(null);
+    const [description, setDescription] = useState(selectedDevice?.description ?? "");
+    const [name, setName] = useState(selectedDevice?.name ?? "");
+    const [devices, setDevices] = useState<Array<DeviceInfo>>([]);
     const { loading, setLoading, spinnerChar } = useLoadingSpinner();
 
     async function readHumidity() {
@@ -22,7 +27,7 @@ export default function HumiditySensor() {
         setError(null);
         try {
             const response = await fetch(
-                `/devices/humidity_sensor/read_humidity?device_uuid=${selectedDevice}`
+                `/devices/humidity_sensor/read_humidity?device_uuid=${selectedDevice?.uuid}`
             );
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
@@ -44,7 +49,12 @@ export default function HumiditySensor() {
         <div>
             <h2>Humidity Sensor</h2>
 
-            <select value={selectedDevice} onChange={(e) => setSelectedDevice(e.target.value)} disabled={loading !== LoadingSection.None || devices.length === 0}>
+            <select value={selectedDevice?.uuid || ""} onChange={(e) => {
+                const device = devices.find(d => d.uuid === e.target.value) || null;
+                setSelectedDevice(device);
+                setDescription(device?.description || "");
+                setName(device?.name || "");
+            }} disabled={loading !== LoadingSection.None || devices.length === 0}>
                 <option value="">
                     {devices.length === 0 ? 'No devices' : 'Select device'}
                 </option>
@@ -65,42 +75,88 @@ export default function HumiditySensor() {
                 {loading === LoadingSection.FetchingDevices ? spinnerChar : "⟳"}
             </button>
 
-            <br />
-            <br />
+            <div style={{
+                textAlign: "left",
+                display: "grid",
+                gridTemplateColumns: "150px auto",
+                gap: "8px 16px",
+                marginTop: "16px",
+            }}>
+                <span>Device Name:</span>
+                <input
+                    type="text"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    onBlur={() => {
+                        updateName(
+                            selectedDevice!.uuid,
+                            name,
+                            setLoading,
+                            setError);
+                        selectedDevice!.name = name;
+                    }}
+                    onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                            updateName(
+                                selectedDevice!.uuid,
+                                name,
+                                setLoading,
+                                setError);
+                            selectedDevice!.name = name;
+                        }
+                    }}
+                    disabled={loading !== LoadingSection.None || !selectedDevice}
+                />
+                <span>Device Description:</span>
+                <input
+                    type="text"
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    onBlur={() => {
+                        updateDescription(
+                            selectedDevice!.uuid,
+                            description,
+                            setLoading,
+                            setError);
+                        selectedDevice!.description = description;
+                    }}
+                    onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                            updateDescription(
+                                selectedDevice!.uuid,
+                                description,
+                                setLoading,
+                                setError);
+                            selectedDevice!.description = description;
+                        }
+                    }}
+                    disabled={loading !== LoadingSection.None || !selectedDevice}
+                />
+                <span>Device Status:</span>
+                <span>{selectedDevice ? selectedDevice.status : ""}</span>
+                <span>Device uuid:</span>
+                <span>{selectedDevice ? selectedDevice.uuid : ""}</span>
+            </div>
 
-            <button onClick={() => readStatus(selectedDevice, setStatus as any, setLoading, setError)} disabled={loading === LoadingSection.UsingDevice || !selectedDevice}>
+            <button onClick={() => readStatus(selectedDevice?.uuid || "", setStatus as any, setLoading, setError)} disabled={loading === LoadingSection.UsingDevice || !selectedDevice}>
                 {loading === LoadingSection.UsingDevice ? spinnerChar : "Get Status"}
             </button>
 
-            <br />
-            <br />
+            <p>{status !== null && <span>Status: {status}</span>}</p>
 
-            {status !== null && <span>Status: {status}</span>}
-
-            <br />
-            <br />
-
-            <button onClick={() => readVersion(selectedDevice, setVersion as any, setLoading, setError)} disabled={loading === LoadingSection.UsingDevice || !selectedDevice}>
+            <button onClick={() => readVersion(selectedDevice?.uuid || "", setVersion as any, setLoading, setError)} disabled={loading === LoadingSection.UsingDevice || !selectedDevice}>
                 {loading === LoadingSection.UsingDevice ? spinnerChar : "Get Version"}
             </button>
 
-            <br />
-            <br />
-
-            {version !== null && <span>Version: {version}</span>}
-
-            <br />
-            <br />
+            <p>{version !== null && <span>Version: {version}</span>}</p>
 
             <button onClick={readHumidity} disabled={loading === LoadingSection.UsingDevice || !selectedDevice}>
                 {loading === LoadingSection.UsingDevice ? spinnerChar : "Read Humidity"}
             </button>
 
-            <br />
-            <br />
+            <p>{humidity !== null && <span>Humidity: {humidity}°C</span>}</p>
 
-            {humidity !== null && <span>Humidity: {humidity} Pa</span>}
-            {error && <div style={{ color: "red" }}>Error: {error}</div>}
+            <p>{error && <div style={{ color: "red" }}>Error: {error}</div>}</p>
         </div>
     );
 }
