@@ -23,6 +23,7 @@ def make_device(u: str = "dev-1"):
         name="test",
         status="offline",
         description="desc",
+        version="1.0.0",
     )
 
 

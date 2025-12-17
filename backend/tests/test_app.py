@@ -33,6 +33,7 @@ def make_device_payload(
         "name": name,
         "status": "simulated",
         "description": "a device",
+        "version": "1.0.0",
     }
 
 
