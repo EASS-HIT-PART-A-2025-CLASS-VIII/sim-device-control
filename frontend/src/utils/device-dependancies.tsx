@@ -28,6 +28,11 @@ export interface DeviceInfo {
     status: string;
 }
 
+export enum MotorDirection {
+    Forward = "forward",
+    Backward = "backward",
+}
+
 const spinnerChars = ['|', '/', '—', '\\'];
 
 export function useLoadingSpinner(initial: LoadingSection = LoadingSection.None) {

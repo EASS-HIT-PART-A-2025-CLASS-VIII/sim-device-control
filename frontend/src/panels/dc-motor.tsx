@@ -4,6 +4,7 @@ import {
 import {
     LoadingSection,
     DeviceType,
+    MotorDirection,
     useLoadingSpinner,
     readStatus,
     readVersion,
@@ -17,6 +18,8 @@ import DeviceWriteAction from "../components/device-write-action";
 export default function DcMotor() {
     const [actualSpeed, setActualSpeed] = useState<number | null>(null);
     const [targetSpeed, setTargetSpeed] = useState<number>(0);
+    const [actualDirection, setActualDirection] = useState<MotorDirection | null>(null);
+    const [targetDirection, setTargetDirection] = useState<MotorDirection>(MotorDirection.Forward);
     const [error, setError] = useState<string | null>(null);
     const [status, setStatus] = useState<string | null>(null);
     const [version, setVersion] = useState<string | null>(null);
@@ -60,6 +63,51 @@ export default function DcMotor() {
             });
             const response = await fetch(
                 `/devices/dc_motor/set_speed?${params.toString()}`,
+                {
+                    method: 'PUT',
+                }
+            );
+            if (!response.ok) {
+                const body = await response.json();
+                throw new Error(`HTTP error! status: ${response.status}, description: ${body.detail}`);
+            }
+        } catch (err: any) {
+            setError(err.message || "Unknown error");
+        } finally {
+            setLoading(LoadingSection.None);
+        }
+    }
+
+    async function readDirection() {
+        setLoading(LoadingSection.UsingDevice);
+        setError(null);
+        try {
+            const response = await fetch(
+                `/devices/dc_motor/get_direction?device_uuid=${selectedDevice?.uuid}`
+            );
+            if (!response.ok) {
+                const body = await response.json();
+                throw new Error(`HTTP error! status: ${response.status}, description: ${body.detail}`);
+            }
+            const textData = await response.text();
+            setActualDirection(textData as MotorDirection);
+        } catch (err: any) {
+            setError(err.message || "Unknown error");
+        } finally {
+            setLoading(LoadingSection.None);
+        }
+    }
+
+    async function writeDirection() {
+        setLoading(LoadingSection.UsingDevice);
+        setError(null);
+        try {
+            const params = new URLSearchParams({
+                device_uuid: selectedDevice!.uuid,
+                direction: targetDirection as string,
+            });
+            const response = await fetch(
+                `/devices/dc_motor/set_direction?${params.toString()}`,
                 {
                     method: 'PUT',
                 }
@@ -146,6 +194,7 @@ export default function DcMotor() {
                 onWrite={() => selectedDevice ? writeSpeed() : undefined}
                 disabled={targetSpeed === null || !selectedDevice}
                 value={targetSpeed ?? 0}
+                unit="%"
                 onValueChange={(v) => setTargetSpeed(typeof v === 'number' ? v : parseFloat(String(v)))}
                 inputType="number"
                 spinnerChar={spinnerChar}
@@ -158,6 +207,29 @@ export default function DcMotor() {
                 disabled={!selectedDevice}
                 value={actualSpeed}
                 renderValue={(v) => <span>Speed: {v} %</span>}
+                spinnerChar={spinnerChar}
+            />
+
+            <DeviceWriteAction
+                label="Set Direction"
+                loading={loading}
+                requiredSection={LoadingSection.UsingDevice}
+                onWrite={() => selectedDevice ? writeDirection() : undefined}
+                disabled={targetDirection === null || !selectedDevice}
+                value={targetDirection ?? MotorDirection.Forward}
+                onValueChange={(v) => setTargetDirection(v as MotorDirection)}
+                enumOptions={Object.values(MotorDirection)}
+                inputType="text"
+                spinnerChar={spinnerChar}
+            />
+
+            <DeviceReadAction
+                label="get Direction"
+                loading={loading}
+                onAction={() => selectedDevice ? readDirection() : undefined}
+                disabled={!selectedDevice}
+                value={actualDirection}
+                renderValue={(v) => <span>Direction: {v}</span>}
                 spinnerChar={spinnerChar}
             />
 
