@@ -145,7 +145,7 @@ export default function TemperatureSensor() {
                     <tbody>
                         {devices.map((option) => (
                             <tr
-                                key={option.type}
+                                key={option.uuid}
                                 onClick={() => {
                                     setSelectedDevice(selectedDevice === option ? null : option);
                                     setDescription(selectedDevice === option ? "" : option.description);
