@@ -1,10 +1,12 @@
 import './App.css'
-import { useState } from 'react'
-import type { ComponentType } from 'react'
-import DeviceList from './components/device-list'
-import TemperatureSensor from './components/temperature-sensor'
-import PressureSensor from './components/pressure-sensor'
-import HumiditySensor from './components/humidity-sensor'
+import {
+  useState,
+  type ComponentType,
+} from 'react'
+import DeviceList from './panels/device-list'
+import TemperatureSensor from './panels/temperature-sensor'
+import PressureSensor from './panels/pressure-sensor'
+import HumiditySensor from './panels/humidity-sensor'
 
 export enum PanelType {
     None = "",

@@ -1,4 +1,6 @@
-import { useState } from "react";
+import {
+    useState
+} from "react";
 import {
     LoadingSection,
     DeviceType,
@@ -9,7 +11,7 @@ import {
     updateDescription,
     updateName,
     type DeviceInfo,
-} from "./device-dependancies";
+} from "../lib/device-dependancies";
 
 export default function TemperatureSensor() {
     const [error, setError] = useState<string | null>(null);
@@ -93,7 +95,11 @@ export default function TemperatureSensor() {
             <button onClick={async () => {
                 await createDevice(newDevice, setLoading, setError);
                 fetchDevices(DeviceType.All, setLoading, setError, setDevices);
-            }} disabled={loading === LoadingSection.UsingDevice || !newDevice.uuid || !newDevice.name || !newDevice.description || !newDevice.version || !newDevice.status}>
+            }} disabled={
+                loading === LoadingSection.UsingDevice
+                || !newDevice.uuid.trim()|| !newDevice.name.trim() || !newDevice.description.trim()
+                || !newDevice.version.trim() || !newDevice.status.trim()
+                }>
                 {loading === LoadingSection.UsingDevice ? spinnerChar : "+"}
             </button>
 
@@ -104,12 +110,36 @@ export default function TemperatureSensor() {
                 <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                     <thead>
                         <tr>
-                            <th style={{ textAlign: 'center', borderBottom: '2px solid #e6e6e6', padding: '8px' }}>uuid</th>
-                            <th style={{ textAlign: 'center', borderBottom: '2px solid #e6e6e6', padding: '8px' }}>type</th>
-                            <th style={{ textAlign: 'center', borderBottom: '2px solid #e6e6e6', padding: '8px' }}>name</th>
-                            <th style={{ textAlign: 'center', borderBottom: '2px solid #e6e6e6', padding: '8px' }}>description</th>
-                            <th style={{ textAlign: 'center', borderBottom: '2px solid #e6e6e6', padding: '8px' }}>version</th>
-                            <th style={{ textAlign: 'center', borderBottom: '2px solid #e6e6e6', padding: '8px' }}>status</th>
+                            <th style={{
+                                textAlign: 'center',
+                                borderBottom: '2px solid #e6e6e6',
+                                padding: '8px'
+                                }}>uuid</th>
+                            <th style={{
+                                textAlign: 'center',
+                                borderBottom: '2px solid #e6e6e6',
+                                padding: '8px'
+                                }}>type</th>
+                            <th style={{
+                                textAlign: 'center',
+                                borderBottom: '2px solid #e6e6e6',
+                                padding: '8px'
+                                }}>name</th>
+                            <th style={{
+                                textAlign: 'center',
+                                borderBottom: '2px solid #e6e6e6',
+                                padding: '8px'
+                                }}>description</th>
+                            <th style={{
+                                textAlign: 'center',
+                                borderBottom: '2px solid #e6e6e6',
+                                padding: '8px'
+                                }}>version</th>
+                            <th style={{
+                                textAlign: 'center',
+                                borderBottom: '2px solid #e6e6e6',
+                                padding: '8px'
+                                }}>status</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -127,12 +157,30 @@ export default function TemperatureSensor() {
                                     transition: 'background 0.15s'
                                 }}
                             >
-                                <td style={{ borderBottom: '1px solid #f0f0f0', padding: '8px', color: selectedDevice === option ? '#000' : '#e6e6e6' }}>{option.uuid}</td>
-                                <td style={{ borderBottom: '1px solid #f0f0f0', padding: '8px', color: selectedDevice === option ? '#000' : '#e6e6e6' }}>{option.type}</td>
-                                <td style={{ borderBottom: '1px solid #f0f0f0', padding: '8px', color: selectedDevice === option ? '#000' : '#e6e6e6' }}>{option.name}</td>
-                                <td style={{ borderBottom: '1px solid #f0f0f0', padding: '8px', color: selectedDevice === option ? '#000' : '#e6e6e6' }}>{option.description}</td>
-                                <td style={{ borderBottom: '1px solid #f0f0f0', padding: '8px', color: selectedDevice === option ? '#000' : '#e6e6e6' }}>{option.version}</td>
-                                <td style={{ borderBottom: '1px solid #f0f0f0', padding: '8px', color: selectedDevice === option ? '#000' : '#e6e6e6' }}>{option.status}</td>
+                                <td style={{
+                                    borderBottom: '1px solid #f0f0f0', padding: '8px',
+                                    color: selectedDevice === option ? '#000' : '#e6e6e6'
+                                    }}>{option.uuid}</td>
+                                <td style={{
+                                    borderBottom: '1px solid #f0f0f0', padding: '8px',
+                                    color: selectedDevice === option ? '#000' : '#e6e6e6'
+                                    }}>{option.type}</td>
+                                <td style={{
+                                    borderBottom: '1px solid #f0f0f0', padding: '8px',
+                                    color: selectedDevice === option ? '#000' : '#e6e6e6'
+                                    }}>{option.name}</td>
+                                <td style={{
+                                    borderBottom: '1px solid #f0f0f0', padding: '8px',
+                                    color: selectedDevice === option ? '#000' : '#e6e6e6'
+                                    }}>{option.description}</td>
+                                <td style={{
+                                    borderBottom: '1px solid #f0f0f0', padding: '8px',
+                                    color: selectedDevice === option ? '#000' : '#e6e6e6'
+                                    }}>{option.version}</td>
+                                <td style={{
+                                    borderBottom: '1px solid #f0f0f0', padding: '8px',
+                                    color: selectedDevice === option ? '#000' : '#e6e6e6'
+                                    }}>{option.status}</td>
                             </tr>
                         ))}
                     </tbody>
