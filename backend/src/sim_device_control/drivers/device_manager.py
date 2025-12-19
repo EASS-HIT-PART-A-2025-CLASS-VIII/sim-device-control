@@ -1,4 +1,5 @@
 from typing import Any, Dict, List, Union, cast
+from .db import get_db
 from ..schemas import DeviceType, MotorDirection, SimDevice
 from .base.base_controller import BaseControllerDriver
 from .base.base_sensor import BaseSensorDriver
@@ -54,13 +55,21 @@ class DeviceManager:
 
     # region all device types operations
 
-    def get_status(self, uuid: str):
+    def get_status(self, uuid: str, db):
         device = self._get_device(uuid)
-        return device._get_status()
+        status = device._get_status()
+        db_device = db.get_device_by_uuid(uuid)
+        updated_db_device = db_device.copy(update={"status": status})
+        db.update_device(uuid, updated_db_device)
+        return status
 
-    def get_version(self, uuid: str):
+    def get_version(self, uuid: str, db):
         device = self._get_device(uuid)
-        return device._get_version()
+        version = device._get_version()
+        db_device = db.get_device_by_uuid(uuid)
+        updated_db_device = db_device.copy(update={"version": version})
+        db.update_device(uuid, updated_db_device)
+        return version
 
     # endregion
 

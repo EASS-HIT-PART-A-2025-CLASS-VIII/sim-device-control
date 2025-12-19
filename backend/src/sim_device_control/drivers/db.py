@@ -20,6 +20,12 @@ class FakeDBSession:
 
     def get_devices(self):
         return self.devices
+    
+    def get_device_by_uuid(self, device_uuid: str):
+        for device in self.devices:
+            if device.uuid == device_uuid:
+                return device
+        raise ValueError("Device not found")
 
     def delete_device(self, device_uuid: str):
         for device in self.devices:

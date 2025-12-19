@@ -198,7 +198,7 @@ def get_device_status(
 ):
     try:
         add_record(db, logged_device_uuid=device_uuid, description="Getting status")
-        device_status = manager.get_status(device_uuid)
+        device_status = manager.get_status(device_uuid, db)
         add_record(
             db, logged_device_uuid=device_uuid, description=f"Status: {device_status}"
         )
@@ -218,7 +218,7 @@ def get_device_version(
 ):
     try:
         add_record(db, logged_device_uuid=device_uuid, description="Getting version")
-        device_version = manager.get_version(device_uuid)
+        device_version = manager.get_version(device_uuid, db)
         add_record(
             db, logged_device_uuid=device_uuid, description=f"Version: {device_version}"
         )
