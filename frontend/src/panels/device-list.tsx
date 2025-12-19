@@ -92,16 +92,27 @@ export default function TemperatureSensor() {
                     disabled={loading !== LoadingSection.None}
                 />
             </div>
-            <button onClick={async () => {
-                await createDevice(newDevice, setLoading, setError);
-                fetchDevices(DeviceType.All, setLoading, setError, setDevices);
-            }} disabled={
-                loading === LoadingSection.UsingDevice
-                || !newDevice.uuid.trim()|| !newDevice.name.trim() || !newDevice.description.trim()
-                || !newDevice.version.trim() || !newDevice.status.trim()
-                }>
-                {loading === LoadingSection.UsingDevice ? spinnerChar : "+"}
-            </button>
+            
+            <div
+                style={{
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    marginTop: "16px",
+                }}>
+                <button onClick={async () => {
+                    await createDevice(newDevice, setLoading, setError);
+                    fetchDevices(DeviceType.All, setLoading, setError, setDevices);
+                }}
+                    disabled={
+                        loading === LoadingSection.UsingDevice
+                        || !newDevice.uuid.trim() || !newDevice.name.trim() || !newDevice.description.trim()
+                        || !newDevice.version.trim() || !newDevice.status.trim()
+                    }
+                    style={{ width: "40px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    {loading === LoadingSection.UsingDevice ? spinnerChar : "+"}
+                </button>
+            </div>
 
             <h2>Device List</h2>
 
@@ -188,10 +199,19 @@ export default function TemperatureSensor() {
 
             </div>
 
+            <div
+                style={{
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    marginTop: "16px",
+                }}>
+
             <button onClick={() => {
                 fetchDevices(DeviceType.All, setLoading, setError, setDevices);
             }}
-                disabled={loading === LoadingSection.FetchingDevices}>
+                disabled={loading === LoadingSection.FetchingDevices}
+                style={{ width: "40px", display: "flex", alignItems: "center", justifyContent: "center" }}>
                 {loading === LoadingSection.FetchingDevices ? spinnerChar : "⟳"}
             </button>
 
@@ -201,10 +221,12 @@ export default function TemperatureSensor() {
                 setSelectedDevice(null);
                 setDescription("");
                 setName("");
-            }} disabled={loading === LoadingSection.UsingDevice || !selectedDevice}>
+            }} disabled={loading === LoadingSection.UsingDevice || !selectedDevice}
+            style={{ width: "40px", display: "flex", alignItems: "center", justifyContent: "center" }}>
                 {loading === LoadingSection.UsingDevice ? spinnerChar : "—"}
             </button>
 
+            </div>
             <div style={{
                 textAlign: "left",
                 display: "grid",

@@ -32,19 +32,33 @@ export default function DeviceSelector({
     const spinnerChar = useSpinnerChar(loading);
 
     return (
-        <>
+        <div style=
+        {{
+            display: "flex",
+            alignItems: "center",
+            gap: "8px",
+            justifyContent: "center",
+            marginTop: "16px"
+            }}>
             <select
                 value={selectedDevice?.uuid || ""}
                 onChange={(e) => {
-                    const device = devices.find(d => d.uuid === e.target.value) || null;
+                    const device =
+                        devices.find(d => d.uuid === e.target.value) || null;
                     onDeviceSelect(device);
                 }}
                 disabled={loading !== LoadingSection.None || devices.length === 0}
+                style={{
+                    height: "32px",
+                    minWidth: "200px",
+                    padding: "0 6px",
+                    boxSizing: "border-box",
+                }}
             >
                 <option value="">
-                    {devices.length === 0 ? 'No devices' : 'Select device'}
+                    {devices.length === 0 ? "No devices" : "Select device"}
                 </option>
-                {devices.map((d) => (
+                {devices.map(d => (
                     <option key={d.uuid} value={d.uuid}>
                         {d.name}
                     </option>
@@ -57,9 +71,17 @@ export default function DeviceSelector({
                     onRefresh();
                 }}
                 disabled={loading === LoadingSection.FetchingDevices}
+                style={{
+                    height: "36px",
+                    width: "36px",
+                    padding: 0,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                }}
             >
                 {loading === LoadingSection.FetchingDevices ? spinnerChar : "⟳"}
             </button>
-        </>
+        </div>
     );
 }

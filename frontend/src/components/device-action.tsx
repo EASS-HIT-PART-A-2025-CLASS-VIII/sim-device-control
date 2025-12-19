@@ -27,47 +27,30 @@ export default function DeviceAction({
     const isDisabled = isLoading || disabled;
 
     return (
-        <div
-            style={{
-                margin: "16px 0",
-                display: "flex",
-                flexDirection: "column",
-                gap: "8px",
-                maxWidth: "320px",
-            }}
-        >
-            <button
-                onClick={onAction}
-                disabled={isDisabled}
-                style={{
-                    padding: "8px 14px",
-                    borderRadius: "6px",
-                    border: "1px solid #ccc",
-                    backgroundColor: isDisabled ? "#f5f5f5" : "#007bff",
-                    color: isDisabled ? "#999" : "#fff",
-                    cursor: isDisabled ? "not-allowed" : "pointer",
-                    fontSize: "14px",
-                    fontWeight: 500,
-                    transition: "background-color 0.2s ease",
-                }}
-            >
+        <div style={{
+            margin: "16px 0",
+            display: "flex",
+            alignItems: "center",
+            gap: "8px",
+            minWidth: "500px",
+        }}>
+            <button onClick={() => onAction()} disabled={isDisabled} style={{ width: "250px" }}>
                 {isLoading ? spinnerChar : label}
             </button>
-
-            {value !== null && value !== undefined && (
-                <div
-                    style={{
-                        padding: "6px 10px",
-                        borderRadius: "4px",
-                        backgroundColor: "#f9f9f9",
-                        border: "1px solid #eee",
-                        fontSize: "13px",
-                        color: "#333",
-                    }}
-                >
-                    {renderValue ? renderValue(value) : <span>{value}</span>}
-                </div>
-            )}
+            <div
+                style={{
+                    width: "200px",
+                    minHeight: "1.5em",
+                    padding: "4px 6px",
+                    border: "1px solid #ccc",
+                }}
+            >
+                {value !== null && value !== undefined
+                    ? renderValue
+                        ? renderValue(value)
+                        : value
+                    : ""}
+            </div>
         </div>
     );
 }

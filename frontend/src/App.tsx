@@ -70,8 +70,20 @@ function App() {
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
               <tr>
-                <th style={{ textAlign: 'center', borderBottom: '2px solid #e6e6e6', padding: '8px' }}>Operation Type</th>
-                <th style={{ textAlign: 'center', borderBottom: '2px solid #e6e6e6', padding: '8px' }}>Operation Description</th>
+                <th style=
+                {{
+                  textAlign: 'center',
+                  borderBottom: '3px solid #e6e6e6',
+                  padding: '8px',
+                  fontSize: '20px',
+                  }}>Operation Type</th>
+                <th style=
+                {{
+                  textAlign: 'center',
+                  borderBottom: '3px solid #e6e6e6',
+                  padding: '8px',
+                  fontSize: '20px',
+                  }}>Operation Description</th>
               </tr>
             </thead>
             <tbody>
@@ -85,8 +97,18 @@ function App() {
                     transition: 'background 0.15s'
                   }}
                 >
-                  <td style={{ borderBottom: '1px solid #f0f0f0', padding: '8px', color: selectedPanel === option.type ? '#000' : '#e6e6e6' }}>{option.label}</td>
-                  <td style={{ borderBottom: '1px solid #f0f0f0', padding: '8px', color: selectedPanel === option.type ? '#000' : '#e6e6e6' }}>{option.description}</td>
+                  <td style=
+                  {{
+                    borderBottom: '1px solid #f0f0f0',
+                    padding: '8px',
+                    color: selectedPanel === option.type ? '#000' : '#e6e6e6'
+                    }}>{option.label}</td>
+                  <td style=
+                  {{
+                    borderBottom: '1px solid #f0f0f0',
+                    padding: '8px',
+                    color: selectedPanel === option.type ? '#000' : '#e6e6e6'
+                    }}>{option.description}</td>
                 </tr>
               ))}
             </tbody>
