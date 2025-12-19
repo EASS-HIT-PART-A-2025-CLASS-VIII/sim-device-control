@@ -117,7 +117,7 @@ export default function PressureSensor() {
                 onAction={() => selectedDevice ? readPressure() : undefined}
                 disabled={!selectedDevice}
                 value={pressure}
-                renderValue={(v) => <span>Pressure: {v} hPa</span>}
+                renderValue={(v) => <span>{v} hPa</span>}
                 spinnerChar={spinnerChar}
             />
 

@@ -117,7 +117,7 @@ export default function HumiditySensor() {
                 onAction={() => selectedDevice ? readHumidity() : undefined}
                 disabled={!selectedDevice}
                 value={humidity}
-                renderValue={(v) => <span>Humidity: {v}%</span>}
+                renderValue={(v) => <span>{v}%</span>}
                 spinnerChar={spinnerChar}
             />
 

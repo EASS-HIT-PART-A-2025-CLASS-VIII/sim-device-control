@@ -125,7 +125,7 @@ export default function DcMotor() {
 
     return (
         <div>
-            <h2>Humidity Sensor</h2>
+            <h2>DC Motor</h2>
 
             <DeviceSelector
                 deviceType={DeviceType.DcMotor}
@@ -201,12 +201,12 @@ export default function DcMotor() {
             />
 
             <DeviceReadAction
-                label="get Speed"
+                label="Get Speed"
                 loading={loading}
                 onAction={() => selectedDevice ? readSpeed() : undefined}
                 disabled={!selectedDevice}
                 value={actualSpeed}
-                renderValue={(v) => <span>Speed: {v} %</span>}
+                renderValue={(v) => <span>{v} %</span>}
                 spinnerChar={spinnerChar}
             />
 
@@ -224,12 +224,12 @@ export default function DcMotor() {
             />
 
             <DeviceReadAction
-                label="get Direction"
+                label="Get Direction"
                 loading={loading}
                 onAction={() => selectedDevice ? readDirection() : undefined}
                 disabled={!selectedDevice}
                 value={actualDirection}
-                renderValue={(v) => <span>Direction: {v}</span>}
+                renderValue={(v) => <span>{v}</span>}
                 spinnerChar={spinnerChar}
             />
 

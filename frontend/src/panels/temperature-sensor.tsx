@@ -117,7 +117,7 @@ export default function TemperatureSensor() {
                 onAction={() => selectedDevice ? readTemperature() : undefined}
                 disabled={!selectedDevice}
                 value={temperature}
-                renderValue={(v) => <span>Temperature: {v}°C</span>}
+                renderValue={(v) => <span>{v}°C</span>}
                 spinnerChar={spinnerChar}
             />
 
