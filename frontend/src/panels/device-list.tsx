@@ -13,7 +13,7 @@ import {
     type DeviceInfo,
 } from "../utils/device-dependancies";
 
-export default function TemperatureSensor() {
+export default function DeviceList() {
     const [error, setError] = useState<string | null>(null);
     const [selectedDevice, setSelectedDevice] = useState<DeviceInfo | null>(null);
     const [description, setDescription] = useState(selectedDevice?.description ?? "");
