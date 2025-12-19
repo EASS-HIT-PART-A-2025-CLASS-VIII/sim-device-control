@@ -11,7 +11,7 @@ import {
     updateDescription,
     updateName,
     type DeviceInfo,
-} from "../lib/device-dependancies";
+} from "../utils/device-dependancies";
 
 export default function TemperatureSensor() {
     const [error, setError] = useState<string | null>(null);

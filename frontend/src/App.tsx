@@ -7,6 +7,7 @@ import DeviceList from './panels/device-list'
 import TemperatureSensor from './panels/temperature-sensor'
 import PressureSensor from './panels/pressure-sensor'
 import HumiditySensor from './panels/humidity-sensor'
+import DcMotor from './panels/dc-motor'
 
 export enum PanelType {
     None = "",
@@ -32,6 +33,9 @@ const deviceTypeOptions = [
   { type: PanelType.HumiditySensor,
     label: 'Humidity Sensor',
     description: 'Humidity sensor device' },
+  { type: PanelType.DcMotor,
+    label: 'DC Motor',
+    description: 'DC motor device' },
 ]
 
 function App() {
@@ -50,6 +54,9 @@ function App() {
       break
     case PanelType.HumiditySensor:
       Panel = HumiditySensor
+      break
+    case PanelType.DcMotor:
+      Panel = DcMotor
       break
     default:
       Panel = () => (

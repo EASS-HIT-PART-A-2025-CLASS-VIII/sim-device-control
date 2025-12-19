@@ -13,7 +13,7 @@ interface DeviceActionProps {
     spinnerChar: string;
 }
 
-export default function DeviceAction({
+export default function DeviceReadAction({
     label,
     loading,
     requiredSection = LoadingSection.UsingDevice,

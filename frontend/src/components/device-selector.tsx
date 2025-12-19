@@ -4,7 +4,7 @@ import {
     fetchDevices,
     useSpinnerChar,
     type DeviceInfo
-} from "../lib/device-dependancies";
+} from "../utils/device-dependancies";
 
 interface DeviceSelectorProps {
     deviceType: DeviceType;

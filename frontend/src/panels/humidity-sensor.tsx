@@ -8,10 +8,10 @@ import {
   readStatus,
   readVersion,
   type DeviceInfo,
-} from "../lib/device-dependancies";
+} from "../utils/device-dependancies";
 import DeviceSelector from "../components/device-selector";
 import DeviceDetails from "../components/device-details";
-import DeviceAction from "../components/device-action";
+import DeviceReadAction from "../components/device-read-action";
 
 export default function HumiditySensor() {
     const [humidity, setHumidity] = useState<number | null>(null);
@@ -32,7 +32,8 @@ export default function HumiditySensor() {
                 `/devices/humidity_sensor/read_humidity?device_uuid=${selectedDevice?.uuid}`
             );
             if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+                const body = await response.json();
+                throw new Error(`HTTP error! status: ${response.status}, description: ${body.detail}`);
             }
             const textData = await response.text();
             const humidityNumber = parseFloat(textData);
@@ -82,7 +83,7 @@ export default function HumiditySensor() {
                 setError={setError}
             />
 
-            <DeviceAction
+            <DeviceReadAction
                 label="Get Status"
                 loading={loading}
                 onAction={() => selectedDevice ? readStatus(
@@ -96,7 +97,7 @@ export default function HumiditySensor() {
                 spinnerChar={spinnerChar}
             />
 
-            <DeviceAction
+            <DeviceReadAction
                 label="Get Version"
                 loading={loading}
                 onAction={() => selectedDevice ? readVersion(
@@ -110,7 +111,7 @@ export default function HumiditySensor() {
                 spinnerChar={spinnerChar}
             />
 
-            <DeviceAction
+            <DeviceReadAction
                 label="Read Humidity"
                 loading={loading}
                 onAction={() => selectedDevice ? readHumidity() : undefined}

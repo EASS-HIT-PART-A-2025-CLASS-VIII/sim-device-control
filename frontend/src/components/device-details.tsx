@@ -3,7 +3,7 @@ import {
     type DeviceInfo,
     updateDescription,
     updateName
-} from "../lib/device-dependancies";
+} from "../utils/device-dependancies";
 
 interface DeviceDetailsProps {
     selectedDevice: DeviceInfo | null;
