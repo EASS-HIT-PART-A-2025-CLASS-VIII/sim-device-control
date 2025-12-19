@@ -744,13 +744,13 @@ def list_logs_by_time(
 
 @app.post("/logs/", response_model=LogRecord, tags=["Log Management"])
 def create_entry(
-    action: str, description: str, device_uuid: str = "", db=Depends(get_db)
+    action: str, description: str, db=Depends(get_db)
 ):
     try:
         record = LogRecord(
             uuid=uuid.uuid4(),
             user=f"{socket.gethostname()}-{socket.gethostbyname(socket.gethostname())}",
-            device_uuid=device_uuid,
+            device_uuid="",
             action=action,
             description=description,
             timestamp=datetime.now(),
