@@ -8,6 +8,7 @@ import TemperatureSensor from './panels/temperature-sensor'
 import PressureSensor from './panels/pressure-sensor'
 import HumiditySensor from './panels/humidity-sensor'
 import DcMotor from './panels/dc-motor'
+import StepperMotor from './panels/stepper-motor'
 
 export enum PanelType {
     None = "",
@@ -36,6 +37,9 @@ const deviceTypeOptions = [
   { type: PanelType.DcMotor,
     label: 'DC Motor',
     description: 'DC motor device' },
+  { type: PanelType.StepperMotor,
+    label: 'Stepper Motor',
+    description: 'Stepper motor device' },
 ]
 
 function App() {
@@ -57,6 +61,9 @@ function App() {
       break
     case PanelType.DcMotor:
       Panel = DcMotor
+      break
+    case PanelType.StepperMotor:
+      Panel = StepperMotor
       break
     default:
       Panel = () => (
