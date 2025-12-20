@@ -199,7 +199,7 @@ export default function LogViewer() {
                                 textAlign: 'center',
                                 borderBottom: '2px solid #e6e6e6',
                                 padding: '8px'
-                            }}>uuid</th>
+                            }}>timestamp</th>
                             <th style={{
                                 textAlign: 'center',
                                 borderBottom: '2px solid #e6e6e6',
@@ -215,11 +215,11 @@ export default function LogViewer() {
                                 borderBottom: '2px solid #e6e6e6',
                                 padding: '8px'
                             }}>description</th>
-                            <th style={{
+                            {/* <th style={{
                                 textAlign: 'center',
                                 borderBottom: '2px solid #e6e6e6',
                                 padding: '8px'
-                            }}>timestamp</th>
+                            }}>timestamp</th> */}
                         </tr>
                     </thead>
                     <tbody>
@@ -227,13 +227,12 @@ export default function LogViewer() {
                             <tr
                                 key={option.uuid}
                                 style={{
-                                    cursor: 'pointer',
                                     transition: 'background 0.15s'
                                 }}
                             >
                                 <td style={{
                                     borderBottom: '1px solid #f0f0f0', padding: '8px',
-                                }}>{option.uuid}</td>
+                                }}>{option.timestamp.replace('T', ' ').slice(0, 19)}</td>
                                 <td style={{
                                     borderBottom: '1px solid #f0f0f0', padding: '8px',
                                 }}>{option.user}</td>
@@ -243,9 +242,9 @@ export default function LogViewer() {
                                 <td style={{
                                     borderBottom: '1px solid #f0f0f0', padding: '8px',
                                 }}>{option.description}</td>
-                                <td style={{
+                                {/* <td style={{
                                     borderBottom: '1px solid #f0f0f0', padding: '8px',
-                                }}>{option.timestamp}</td>
+                                }}>{option.timestamp}</td> */}
                             </tr>
                         ))}
                     </tbody>
