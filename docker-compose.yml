@@ -1,0 +1,29 @@
+services:
+  backend:
+    build: ./backend
+    container_name: sim-device-backend
+    ports:
+      - "8000:8000"
+    networks:
+      - sim-device-net
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request,sys; urllib.request.urlopen('http://localhost:8000/health'); sys.exit(0)"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
+  frontend:
+    build: ./frontend
+    container_name: sim-device-frontend
+    ports:
+      - "5173:5173"
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - sim-device-net
+
+networks:
+  sim-device-net:
+    driver: bridge
