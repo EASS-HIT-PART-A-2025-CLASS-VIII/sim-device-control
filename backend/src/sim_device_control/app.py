@@ -10,6 +10,10 @@ from .drivers.device_manager import get_device_manager
 
 tags_metadata = [
     {
+        "name": "Health Check",
+        "description": "Verify that the backend is running",
+    },
+    {
         "name": "General Device Control",
         "description": "General operations: add, remove, list.",
     },
@@ -72,6 +76,16 @@ def match_device_type(db, device_uuid: str, device_type: DeviceType) -> None:
         )
         raise HTTPException(status_code=404, detail=f"Device is not a {device_detail}")
 
+
+# region health check operation
+
+
+@app.get("/health", response_model=str, tags=["Health Check"])
+def health_check():
+    return "OK"
+
+
+# endregion
 
 # region general device operations
 
