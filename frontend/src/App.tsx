@@ -9,6 +9,7 @@ import PressureSensor from './panels/pressure-sensor'
 import HumiditySensor from './panels/humidity-sensor'
 import DcMotor from './panels/dc-motor'
 import StepperMotor from './panels/stepper-motor'
+import LogViewer from './panels/log-viewer'
 
 export enum PanelType {
     None = "",
@@ -40,6 +41,9 @@ const deviceTypeOptions = [
   { type: PanelType.StepperMotor,
     label: 'Stepper Motor',
     description: 'Stepper motor device' },
+  { type: PanelType.Logs,
+    label: 'Logs',
+    description: 'View or create logs' },
 ]
 
 function App() {
@@ -64,6 +68,9 @@ function App() {
       break
     case PanelType.StepperMotor:
       Panel = StepperMotor
+      break
+    case PanelType.Logs:
+      Panel = LogViewer
       break
     default:
       Panel = () => (

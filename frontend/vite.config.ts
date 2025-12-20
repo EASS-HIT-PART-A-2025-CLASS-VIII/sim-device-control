@@ -15,6 +15,11 @@ export default defineConfig(({ mode }) => {
           changeOrigin: true,
           rewrite: (p) => p.replace(/^\/devices/, '/devices'),
         },
+        '/logs': {
+          target: proxyTarget,
+          changeOrigin: true,
+          rewrite: (p) => p.replace(/^\/logs/, '/logs'),
+        },
       },
     },
   }

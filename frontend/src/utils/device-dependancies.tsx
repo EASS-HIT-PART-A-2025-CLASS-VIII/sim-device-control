@@ -28,6 +28,15 @@ export interface DeviceInfo {
     status: string;
 }
 
+export interface LogEntry {
+    uuid: string;
+    user: string;
+    device_uuid: string;
+    action: string;
+    description: string;
+    timestamp: string;
+}
+
 export enum MotorDirection {
     Forward = "forward",
     Backward = "backward",
