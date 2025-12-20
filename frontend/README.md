@@ -1,73 +1,86 @@
-# React + TypeScript + Vite
+# Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Simulated Device Controller - React + Vite
 
-Currently, two official plugins are available:
+A React + TypeScript frontend for controlling simulated devices and viewing logs. The UI provides device CRUD, sensor panels, a DC motor control, and a log viewer with time-based filtering.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+Project layout
 
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```
+frontend/
+├── Dockerfile
+├── package.json
+├── run-docker.sh
+├── vite.config.ts
+├── .env.example
+├── src
+│   ├── components
+│   │   ├── device-action.tsx
+│   │   ├── device-details.tsx
+│   │   ├── device-selector.tsx
+│   │   ├── device-write-action.tsx
+│   │   └── device-read-action.tsx
+│   ├── panels
+│   │   ├── temperature-sensor.tsx
+│   │   ├── pressure-sensor.tsx
+│   │   ├── humidity-sensor.tsx
+│   │   ├── dc-motor.tsx
+│   │   └── log-viewer.tsx
+│   ├── utils
+│   │   └── device-dependancies.ts
+│   ├── App.tsx
+│   └── main.tsx
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+**Prerequisites:**
+- Node.js 20+
+- npm
+- Docker (for container builds)
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+**Getting started (local)**
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+Install dependencies:
+
+```bash
+npm install
 ```
+
+Configure environment variables:
+
+```bash
+cp .env.example .env
+```
+
+Edit `.env` and set your backend URL:
+
+```
+VITE_API_TARGET=http://localhost:8000
+```
+
+Run the app locally with the Vite dev server:
+
+```bash
+npm run dev
+```
+
+If debugging is required then you can use the developer tools in your browser (F12 or Ctrl+Shift+I).
+
+The app entry point is `src/main.tsx`.
+
+**Docker**
+
+Build and run the image (example):
+
+```bash
+docker build -t frontend .
+docker run -p 5173:5173 frontend
+```
+
+Alternatively, you can run the `run-docker.sh` bash script:
+
+```bash
+./run-docker.sh
+```
+
+Note: Update `VITE_API_TARGET` in the Dockerfile to point to your backend service when running in Docker.
+

@@ -2,95 +2,45 @@
 
 A small demo project that exposes a FastAPI service for controlling simulated devices and collecting logs.
 
-## Backend
+**Project Internals**
 
-Simulated Device Controller - FastAPI
+As of now the project contains:
+- Python fastapi backend
+- Typescript React as a UI framework and Vite as a building tool and development server
 
-FastAPI service that exposes CRUD endpoints for simulated devices and a simple logging API. Backend code is grouped under `src/sim_device_control/` by responsibility: routes and API (`app.py`), domain schemas (`schemas.py`), and a small fake persistence layer (`db.py`) used for demos and tests.
-
-Everything under this section requires you to be under the `backend/` folder.
-
-Project layout
+Project folders layout:
 
 ```
-backend/
-├── Dockerfile
-├── pyproject.toml
-├── requirements-dev.txt
-├── requirements.txt
-├── run-docker.sh
-├── scripts
-├── src
-│   └── sim_device_control
-│       ├── app.py
-│       ├── drivers
-│       │   ├── base
-│       │   │   ├── base_controller.py
-│       │   │   └── base_sensor.py
-│       │   ├── db.py
-│       │   ├── dc_motor.py
-│       │   ├── device_manager.py
-│       │   ├── humidity.py
-│       │   ├── pressure.py
-│       │   ├── stepper_motor.py
-│       │   └── temperature.py
-│       ├── __init__.py
-│       ├── __main__.py
-│       └── schemas.py
-├── tests
-│   ├── conftest.py
-│   ├── test_app.py
-│   └── test_db.py
-└── uv.lock
+.
+├── backend
+│   ├── scripts
+│   ├── src
+│   │   ├── sim_device_control
+│   │   │   └── drivers
+│   │   │       └── base
+│   └── tests
+└── frontend
+    └── src
+        ├── assets
+        ├── components
+        ├── panels
+        └── utils
 ```
-
-**Prerequisites:**
-- Python 3.12+
-- Virtualenv
-- Docker (for container builds)
-
-**Getting started (local)**
-
-Create and activate your virtualenv and install dependencies (project uses a `.venv` by convention):
-
-```bash
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-```
-
-Run the API locally with uvicorn (module entrypoint):
-
-```bash
-python -m uvicorn sim_device_control.app:app --reload --host 0.0.0.0 --port 8000
-```
-
-If debugging is required then you can run `__main__.py` via vscode (use included .vscode/launch.json).
-
-The ASGI app object is `sim_device_control.app:app` for other runners (Docker, tests, CI).
-
-**Tests**
-
-Run the pytest suite:
-
-```bash
-pytest -q
-```
-
-The tests use `fastapi.testclient.TestClient` and a `conftest.py` helper so the `src/` package is importable during test runs.
 
 **Docker**
 
-Build and run the image (example):
+In order to run the project as a whole run the docker-compose.yml file:
 
 ```bash
-docker build -t sim-device-control .
-docker run -p 8000:8000 sim-device-control
+docker compose up -d --build
 ```
 
-Alternatively, you can run the `run-docker.sh` bash script:
+If you need to run a specific component of the project, visit its directory and follow its README.md file
 
-```bash
-./run-docker.sh
-```
-
+## TODO
+- Implement a Database
+- have the backend communicate with the Database
+- Dockerize the Database
+- Implement MQTT protocol in the backend
+- Create a simple rust project to behave as a simulated device
+- Dockerize the rust project
