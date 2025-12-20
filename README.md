@@ -32,7 +32,7 @@ Project folders layout:
 In order to run the project as a whole run the docker-compose.yml file:
 
 ```bash
-docker compose up -d --build
+docker compose up --build
 ```
 
 If you need to run a specific component of the project, visit its directory and follow its README.md file
