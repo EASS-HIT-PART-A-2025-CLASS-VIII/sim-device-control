@@ -44,8 +44,9 @@ export default function LogViewer() {
                 const body = await response.json();
                 throw new Error(`HTTP error! status: ${response.status}, description: ${body.detail}`);
             }
-        } catch (err: any) {
-            setError(err.message || "Unknown error");
+        } catch (err: unknown) {
+            const message = err instanceof Error ? err.message : "Unknown error";
+            setError(message);
         } finally {
             setLoading(LoadingSection.None);
         }
@@ -68,8 +69,9 @@ export default function LogViewer() {
             }
             const data = await response.json();
             setLogEntries(data);
-        } catch (err: any) {
-            setError(err.message || "Unknown error");
+        } catch (err: unknown) {
+            const message = err instanceof Error ? err.message : "Unknown error";
+            setError(message);
         } finally {
             setLoading(LoadingSection.None);
         }
@@ -96,8 +98,9 @@ export default function LogViewer() {
             }
             const data = await response.json();
             setLogEntries(data);
-        } catch (err: any) {
-            setError(err.message || "Unknown error");
+        } catch (err: unknown) {
+            const message = err instanceof Error ? err.message : "Unknown error";
+            setError(message);
         } finally {
             setLoading(LoadingSection.None);
         }
@@ -160,7 +163,11 @@ export default function LogViewer() {
                     marginTop: "16px",
                 }}>
                 <button onClick={() => {
-                    start_time === "" && end_time === "" ? fetchLogEntries(setLoading, setError, setLogEntries) : fetchFilteredLogEntries(setLoading, setError, setLogEntries);
+                    if (start_time === "" && end_time === "") {
+                        fetchLogEntries(setLoading, setError, setLogEntries);
+                    } else {
+                        fetchFilteredLogEntries(setLoading, setError, setLogEntries);
+                    }
                 }}
                     disabled={loading === LoadingSection.FetchingDevices}
                     style={{ width: "40px", display: "flex", alignItems: "center", justifyContent: "center" }}>

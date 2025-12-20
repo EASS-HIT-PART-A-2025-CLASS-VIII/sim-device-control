@@ -43,22 +43,24 @@ export enum MotorDirection {
 }
 
 const spinnerChars = ['|', '/', '—', '\\'];
+const getErrorMessage = (err: unknown) => err instanceof Error ? err.message : "Unknown error";
 
 export function useLoadingSpinner(initial: LoadingSection = LoadingSection.None) {
     const [loading, setLoading] = useState<LoadingSection>(initial);
     const [spinnerIndex, setSpinnerIndex] = useState(0);
 
     useEffect(() => {
-        let id: number | undefined;
-        if (loading !== LoadingSection.None) {
-            id = window.setInterval(() => {
-                setSpinnerIndex((i) => (i + 1) % spinnerChars.length);
-            }, 120);
-        } else {
-            setSpinnerIndex(0);
+        if (loading === LoadingSection.None) {
+            return;
         }
+
+        const id = window.setInterval(() => {
+            setSpinnerIndex((i) => (i + 1) % spinnerChars.length);
+        }, 120);
+
         return () => {
-            if (id !== undefined) clearInterval(id);
+            clearInterval(id);
+            setSpinnerIndex(0);
         };
     }, [loading]);
 
@@ -71,16 +73,17 @@ export function useSpinnerChar(loading: LoadingSection) {
     const [spinnerIndex, setSpinnerIndex] = useState(0);
 
     useEffect(() => {
-        let id: number | undefined;
-        if (loading !== LoadingSection.None) {
-            id = window.setInterval(() => {
-                setSpinnerIndex((i) => (i + 1) % spinnerChars.length);
-            }, 120);
-        } else {
-            setSpinnerIndex(0);
+        if (loading === LoadingSection.None) {
+            return;
         }
+
+        const id = window.setInterval(() => {
+            setSpinnerIndex((i) => (i + 1) % spinnerChars.length);
+        }, 120);
+
         return () => {
-            if (id !== undefined) clearInterval(id);
+            clearInterval(id);
+            setSpinnerIndex(0);
         };
     }, [loading]);
 
@@ -113,8 +116,8 @@ export async function fetchDevices
             });
         }
         setDevices(mapped);
-    } catch (err: any) {
-        setError(err.message || "Unknown error");
+    } catch (err: unknown) {
+        setError(getErrorMessage(err));
     } finally {
         setLoading(LoadingSection.None);
     }
@@ -137,8 +140,8 @@ export async function readStatus
         }
         const textData = await response.text();
         setStatus(textData);
-    } catch (err: any) {
-        setError(err.message || "Unknown error");
+    } catch (err: unknown) {
+        setError(getErrorMessage(err));
     } finally {
         setLoading(LoadingSection.None);
     }
@@ -161,8 +164,8 @@ export async function readVersion
         }
         const textData = await response.text();
         setVersion(textData);
-    } catch (err: any) {
-        setError(err.message || "Unknown error");
+    } catch (err: unknown) {
+        setError(getErrorMessage(err));
     } finally {
         setLoading(LoadingSection.None);
     }
@@ -189,8 +192,8 @@ export async function updateDescription
             const body = await response.json();
             throw new Error(`HTTP error! status: ${response.status}, description: ${body.detail}`);
         }
-    } catch (err: any) {
-        setError(err.message || "Unknown error");
+    } catch (err: unknown) {
+        setError(getErrorMessage(err));
     } finally {
         setLoading(LoadingSection.None);
     }
@@ -217,8 +220,8 @@ export async function updateName
             const body = await response.json();
             throw new Error(`HTTP error! status: ${response.status}, description: ${body.detail}`);
         }
-    } catch (err: any) {
-        setError(err.message || "Unknown error");
+    } catch (err: unknown) {
+        setError(getErrorMessage(err));
     } finally {
         setLoading(LoadingSection.None);
     }
@@ -241,8 +244,8 @@ export async function deleteDevice
             const body = await response.json();
             throw new Error(`HTTP error! status: ${response.status}, description: ${body.detail}`);
         }
-    } catch (err: any) {
-        setError(err.message || "Unknown error");
+    } catch (err: unknown) {
+        setError(getErrorMessage(err));
     } finally {
         setLoading(LoadingSection.None);
     }
@@ -277,8 +280,8 @@ export async function createDevice
             const body = await response.json();
             throw new Error(`HTTP error! status: ${response.status}, description: ${body.detail}`);
         }
-    } catch (err: any) {
-        setError(err.message || "Unknown error");
+    } catch (err: unknown) {
+        setError(getErrorMessage(err));
     } finally {
         setLoading(LoadingSection.None);
     }

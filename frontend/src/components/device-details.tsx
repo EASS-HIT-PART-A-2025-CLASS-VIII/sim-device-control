@@ -31,13 +31,11 @@ export default function DeviceDetails({
     const persistName = () => {
         if (!selectedDevice) return;
         updateName(selectedDevice.uuid, name, setLoading, setError);
-        selectedDevice.name = name;
     };
 
     const persistDescription = () => {
         if (!selectedDevice) return;
         updateDescription(selectedDevice.uuid, description, setLoading, setError);
-        selectedDevice.description = description;
     };
 
     return (

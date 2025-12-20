@@ -55,9 +55,9 @@ export default function DeviceList() {
                     onChange={(e) => setNewDevice({ ...newDevice, type: e.target.value as DeviceType })}
                     disabled={loading !== LoadingSection.None}
                 >
-                    {Object.entries(DeviceType)
-                        .filter(([_, value]) => value !== DeviceType.All && value !== DeviceType.None)
-                        .map(([_, value]) => (
+                    {Object.values(DeviceType)
+                        .filter((value) => value !== DeviceType.All && value !== DeviceType.None)
+                        .map((value) => (
                             <option key={value} value={value}>
                                 {value}
                             </option>
@@ -239,22 +239,23 @@ export default function DeviceList() {
                     type="text"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    onBlur={() => {
-                        updateName(
-                            selectedDevice!.uuid,
+                    onBlur={async () => {
+                        if (!selectedDevice) return;
+                        await updateName(
+                            selectedDevice.uuid,
                             name,
                             setLoading,
                             setError);
-                        selectedDevice!.name = name;
+                        setSelectedDevice((prev) => prev && prev.uuid === selectedDevice.uuid ? { ...prev, name } : prev);
                     }}
-                    onKeyDown={(e) => {
-                        if (e.key === "Enter") {
-                            updateName(
-                                selectedDevice!.uuid,
+                    onKeyDown={async (e) => {
+                        if (e.key === "Enter" && selectedDevice) {
+                            await updateName(
+                                selectedDevice.uuid,
                                 name,
                                 setLoading,
                                 setError);
-                            selectedDevice!.name = name;
+                            setSelectedDevice((prev) => prev && prev.uuid === selectedDevice.uuid ? { ...prev, name } : prev);
                         }
                     }}
                     disabled={loading !== LoadingSection.None || !selectedDevice}
@@ -264,22 +265,23 @@ export default function DeviceList() {
                     type="text"
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
-                    onBlur={() => {
-                        updateDescription(
-                            selectedDevice!.uuid,
+                    onBlur={async () => {
+                        if (!selectedDevice) return;
+                        await updateDescription(
+                            selectedDevice.uuid,
                             description,
                             setLoading,
                             setError);
-                        selectedDevice!.description = description;
+                        setSelectedDevice((prev) => prev && prev.uuid === selectedDevice.uuid ? { ...prev, description } : prev);
                     }}
-                    onKeyDown={(e) => {
-                        if (e.key === "Enter") {
-                            updateDescription(
-                                selectedDevice!.uuid,
+                    onKeyDown={async (e) => {
+                        if (e.key === "Enter" && selectedDevice) {
+                            await updateDescription(
+                                selectedDevice.uuid,
                                 description,
                                 setLoading,
                                 setError);
-                            selectedDevice!.description = description;
+                            setSelectedDevice((prev) => prev && prev.uuid === selectedDevice.uuid ? { ...prev, description } : prev);
                         }
                     }}
                     disabled={loading !== LoadingSection.None || !selectedDevice}

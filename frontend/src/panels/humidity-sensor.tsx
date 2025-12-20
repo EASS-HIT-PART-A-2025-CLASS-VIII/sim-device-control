@@ -41,8 +41,9 @@ export default function HumiditySensor() {
                 throw new Error("Invalid humidity value");
             }
             setHumidity(humidityNumber);
-        } catch (err: any) {
-            setError(err.message || "Unknown error");
+        } catch (err: unknown) {
+            const message = err instanceof Error ? err.message : "Unknown error";
+            setError(message);
         } finally {
             setLoading(LoadingSection.None);
         }
@@ -88,7 +89,7 @@ export default function HumiditySensor() {
                 loading={loading}
                 onAction={() => selectedDevice ? readStatus(
                     selectedDevice.uuid,
-                    setStatus as any,
+                    (s) => setStatus(s),
                     setLoading,
                     setError
                 ) : undefined}
@@ -102,7 +103,7 @@ export default function HumiditySensor() {
                 loading={loading}
                 onAction={() => selectedDevice ? readVersion(
                     selectedDevice.uuid,
-                    setVersion as any,
+                    (v) => setVersion(v),
                     setLoading,
                     setError
                 ) : undefined}

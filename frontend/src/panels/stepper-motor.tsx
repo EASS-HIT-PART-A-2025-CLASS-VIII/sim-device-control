@@ -34,6 +34,8 @@ export default function DcMotor() {
     const [devices, setDevices] = useState<Array<DeviceInfo>>([]);
     const { loading, setLoading, spinnerChar } = useLoadingSpinner();
 
+    const getErrorMessage = (err: unknown) => err instanceof Error ? err.message : "Unknown error";
+
     async function readSpeed() {
         setLoading(LoadingSection.UsingDevice);
         setError(null);
@@ -51,8 +53,8 @@ export default function DcMotor() {
                 throw new Error("Invalid speed value");
             }
             setActualSpeed(speedNumber);
-        } catch (err: any) {
-            setError(err.message || "Unknown error");
+        } catch (err: unknown) {
+            setError(getErrorMessage(err));
         } finally {
             setLoading(LoadingSection.None);
         }
@@ -76,8 +78,8 @@ export default function DcMotor() {
                 const body = await response.json();
                 throw new Error(`HTTP error! status: ${response.status}, description: ${body.detail}`);
             }
-        } catch (err: any) {
-            setError(err.message || "Unknown error");
+        } catch (err: unknown) {
+            setError(getErrorMessage(err));
         } finally {
             setLoading(LoadingSection.None);
         }
@@ -96,8 +98,8 @@ export default function DcMotor() {
             }
             const textData = await response.text();
             setActualDirection(textData as MotorDirection);
-        } catch (err: any) {
-            setError(err.message || "Unknown error");
+        } catch (err: unknown) {
+            setError(getErrorMessage(err));
         } finally {
             setLoading(LoadingSection.None);
         }
@@ -121,8 +123,8 @@ export default function DcMotor() {
                 const body = await response.json();
                 throw new Error(`HTTP error! status: ${response.status}, description: ${body.detail}`);
             }
-        } catch (err: any) {
-            setError(err.message || "Unknown error");
+        } catch (err: unknown) {
+            setError(getErrorMessage(err));
         } finally {
             setLoading(LoadingSection.None);
         }
@@ -145,8 +147,8 @@ export default function DcMotor() {
                 throw new Error("Invalid acceleration value");
             }
             setActualAcceleration(accelerationNumber);
-        } catch (err: any) {
-            setError(err.message || "Unknown error");
+        } catch (err: unknown) {
+            setError(getErrorMessage(err));
         } finally {
             setLoading(LoadingSection.None);
         }
@@ -170,8 +172,8 @@ export default function DcMotor() {
                 const body = await response.json();
                 throw new Error(`HTTP error! status: ${response.status}, description: ${body.detail}`);
             }
-        } catch (err: any) {
-            setError(err.message || "Unknown error");
+        } catch (err: unknown) {
+            setError(getErrorMessage(err));
         } finally {
             setLoading(LoadingSection.None);
         }
@@ -194,8 +196,8 @@ export default function DcMotor() {
                 throw new Error("Invalid position value");
             }
             setActualPosition(positionNumber);
-        } catch (err: any) {
-            setError(err.message || "Unknown error");
+        } catch (err: unknown) {
+            setError(getErrorMessage(err));
         } finally {
             setLoading(LoadingSection.None);
         }
@@ -219,8 +221,8 @@ export default function DcMotor() {
                 const body = await response.json();
                 throw new Error(`HTTP error! status: ${response.status}, description: ${body.detail}`);
             }
-        } catch (err: any) {
-            setError(err.message || "Unknown error");
+        } catch (err: unknown) {
+            setError(getErrorMessage(err));
         } finally {
             setLoading(LoadingSection.None);
         }
@@ -244,8 +246,8 @@ export default function DcMotor() {
                 const body = await response.json();
                 throw new Error(`HTTP error! status: ${response.status}, description: ${body.detail}`);
             }
-        } catch (err: any) {
-            setError(err.message || "Unknown error");
+        } catch (err: unknown) {
+            setError(getErrorMessage(err));
         } finally {
             setLoading(LoadingSection.None);
         }
@@ -292,7 +294,7 @@ export default function DcMotor() {
                 loading={loading}
                 onAction={() => selectedDevice ? readStatus(
                     selectedDevice.uuid,
-                    setStatus as any,
+                    (value) => setStatus(value),
                     setLoading,
                     setError
                 ) : undefined}
@@ -306,7 +308,7 @@ export default function DcMotor() {
                 loading={loading}
                 onAction={() => selectedDevice ? readVersion(
                     selectedDevice.uuid,
-                    setVersion as any,
+                    (value) => setVersion(value),
                     setLoading,
                     setError
                 ) : undefined}

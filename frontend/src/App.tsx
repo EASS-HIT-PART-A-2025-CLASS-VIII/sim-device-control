@@ -10,46 +10,23 @@ import HumiditySensor from './panels/humidity-sensor'
 import DcMotor from './panels/dc-motor'
 import StepperMotor from './panels/stepper-motor'
 import LogViewer from './panels/log-viewer'
+import {
+  PanelType,
+  deviceTypeOptions,
+} from './panel-config'
 
-export enum PanelType {
-    None = "",
-    DeviceList = "device_list",
-    TemperatureSensor = "temperature_sensor",
-    PressureSensor = "pressure_sensor",
-    HumiditySensor = "humidity_sensor",
-    DcMotor = "dc_motor",
-    StepperMotor = "stepper_motor",
-    Logs = "logs",
-}
+type PanelComponent = ComponentType<Record<string, unknown>>
 
-const deviceTypeOptions = [
-  { type: PanelType.DeviceList,
-    label: 'Device List',
-    description: 'View or create devices' },
-  { type: PanelType.TemperatureSensor,
-    label: 'Temperature Sensor',
-    description: 'Temperature sensor device' },
-  { type: PanelType.PressureSensor,
-    label: 'Pressure Sensor',
-    description: 'Pressure sensor device' },
-  { type: PanelType.HumiditySensor,
-    label: 'Humidity Sensor',
-    description: 'Humidity sensor device' },
-  { type: PanelType.DcMotor,
-    label: 'DC Motor',
-    description: 'DC motor device' },
-  { type: PanelType.StepperMotor,
-    label: 'Stepper Motor',
-    description: 'Stepper motor device' },
-  { type: PanelType.Logs,
-    label: 'Logs',
-    description: 'View or create logs' },
-]
+const DefaultPanel: PanelComponent = () => (
+  <div>
+    <h2>Select which panel to view from the "View Selector" on the left.</h2>
+  </div>
+)
 
 function App() {
   const [selectedPanel, setSelectedPanel] = useState<PanelType | null>(null)
 
-  let Panel: ComponentType<any>
+  let Panel: PanelComponent
   switch (selectedPanel) {
     case PanelType.DeviceList:
       Panel = DeviceList
@@ -73,11 +50,7 @@ function App() {
       Panel = LogViewer
       break
     default:
-      Panel = () => (
-        <div>
-          <h2>Select which panel to view from the "View Selector" on the left.</h2>
-        </div>
-      )
+      Panel = DefaultPanel
   }
 
   return (

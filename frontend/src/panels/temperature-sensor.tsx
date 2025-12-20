@@ -24,6 +24,8 @@ export default function TemperatureSensor() {
     const [devices, setDevices] = useState<Array<DeviceInfo>>([]);
     const { loading, setLoading, spinnerChar } = useLoadingSpinner();
 
+    const getErrorMessage = (err: unknown) => err instanceof Error ? err.message : "Unknown error";
+
     async function readTemperature() {
         setLoading(LoadingSection.UsingDevice);
         setError(null);
@@ -41,8 +43,8 @@ export default function TemperatureSensor() {
                 throw new Error("Invalid temperature value");
             }
             setTemperature(temperatureNumber);
-        } catch (err: any) {
-            setError(err.message || "Unknown error");
+        } catch (err: unknown) {
+            setError(getErrorMessage(err));
         } finally {
             setLoading(LoadingSection.None);
         }
@@ -88,7 +90,7 @@ export default function TemperatureSensor() {
                 loading={loading}
                 onAction={() => selectedDevice ? readStatus(
                     selectedDevice.uuid,
-                    setStatus as any,
+                    (value) => setStatus(value),
                     setLoading,
                     setError
                 ) : undefined}
@@ -102,7 +104,7 @@ export default function TemperatureSensor() {
                 loading={loading}
                 onAction={() => selectedDevice ? readVersion(
                     selectedDevice.uuid,
-                    setVersion as any,
+                    (value) => setVersion(value),
                     setLoading,
                     setError
                 ) : undefined}
