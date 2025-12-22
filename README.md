@@ -7,6 +7,7 @@ A small demo project that exposes a FastAPI service for controlling simulated de
 As of now the project contains:
 - Python fastapi backend
 - Typescript React as a UI framework and Vite as a building tool and development server
+- MySQL Database that saves logs and devices
 
 Project folders layout:
 
