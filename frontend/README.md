@@ -54,7 +54,7 @@ cp .env.example .env
 Edit `.env` and set your backend URL:
 
 ```
-VITE_API_TARGET=http://localhost:8000
+VITE_API_TARGET=http://backend:8000
 ```
 
 Run the app locally with the Vite dev server:
