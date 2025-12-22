@@ -5,13 +5,13 @@ services:
     image: mysql:8.1
     container_name: sim-device-db
     restart: unless-stopped
-    #env_file:
-    #  - .env
+    env_file:
+      - .env
     environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: sim_device_control
-      MYSQL_USER: admin
-      MYSQL_PASSWORD: admin
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
     ports:
       - "3307:3306"
     volumes:
@@ -23,11 +23,13 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-      start_period: 15s
+      start_period: 30s
       
   backend:
     build: ./backend
     container_name: sim-device-backend
+    env_file:
+      - .env
     ports:
       - "8000:8000"
     networks:

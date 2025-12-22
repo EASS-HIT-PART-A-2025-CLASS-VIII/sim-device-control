@@ -6,9 +6,7 @@ COPY package*.json ./
 RUN npm ci
 
 COPY . .
-
-RUN cp .env .env && \
-    sed -i 's|VITE_API_TARGET=.*|VITE_API_TARGET=http://backend:8000|' .env
+COPY .env .env
 
 EXPOSE 5173
 
