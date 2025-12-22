@@ -1,4 +1,30 @@
+version: "3.9"
+
 services:
+  db:
+    image: mysql:8.1
+    container_name: sim-device-db
+    restart: unless-stopped
+    #env_file:
+    #  - .env
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: sim_device_control
+      MYSQL_USER: admin
+      MYSQL_PASSWORD: admin
+    ports:
+      - "3307:3306"
+    volumes:
+      - sim_device_data:/var/lib/mysql
+    networks:
+      - sim-device-net
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+      
   backend:
     build: ./backend
     container_name: sim-device-backend
@@ -6,6 +32,9 @@ services:
       - "8000:8000"
     networks:
       - sim-device-net
+    depends_on:
+      db:
+        condition: service_healthy
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request,sys; urllib.request.urlopen('http://localhost:8000/health'); sys.exit(0)"]
       interval: 10s
@@ -23,6 +52,9 @@ services:
         condition: service_healthy
     networks:
       - sim-device-net
+      
+volumes:
+  sim_device_data:
 
 networks:
   sim-device-net:
