@@ -1,5 +1,7 @@
 from typing import Any, Dict, List, Union, cast
+from fastapi import Depends
 from .db import get_db
+from . import db as db_driver
 from ..schemas import DeviceType, MotorDirection, SimDevice
 from .base.base_controller import BaseControllerDriver
 from .base.base_sensor import BaseSensorDriver
@@ -16,6 +18,22 @@ DeviceDriverType = Union[BaseSensorDriver, BaseControllerDriver]
 class DeviceManager:
     def __init__(self):
         self.drivers: List[DeviceDriverType] = []
+        db_gen = get_db()
+        db = next(db_gen)
+        try:
+            devices_to_ping: List[SimDevice] = db_driver.get_devices(db)
+            for device in devices_to_ping:
+                try:
+                    self.add_device(device)
+                    device_driver = self._get_device(device.uuid)
+                    status = device_driver._get_status()
+                    device.status = status
+                    db_driver.update_device(db, device.uuid, device)
+                except ValueError:
+                    self.remove_device(device.uuid)
+                    db_driver.delete_device(db, device.uuid)
+        finally:
+            db_gen.close()
 
     # region internal methods
 
@@ -58,17 +76,21 @@ class DeviceManager:
     def get_status(self, uuid: str, db):
         device = self._get_device(uuid)
         status = device._get_status()
-        db_device = db.get_device_by_uuid(uuid)
+        # db_device = db.get_device_by_uuid(uuid)
+        db_device = db_driver.get_device_by_uuid(db, uuid)
         updated_db_device = db_device.copy(update={"status": status})
-        db.update_device(uuid, updated_db_device)
+        # db.update_device(uuid, updated_db_device)
+        db_driver.update_device(db, uuid, updated_db_device)
         return status
 
     def get_version(self, uuid: str, db):
         device = self._get_device(uuid)
         version = device._get_version()
-        db_device = db.get_device_by_uuid(uuid)
+        # db_device = db.get_device_by_uuid(uuid)
+        db_device = db_driver.get_device_by_uuid(db, uuid)
         updated_db_device = db_device.copy(update={"version": version})
-        db.update_device(uuid, updated_db_device)
+        # db.update_device(uuid, updated_db_device)
+        db_driver.update_device(db, uuid, updated_db_device)
         return version
 
     # endregion

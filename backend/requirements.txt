@@ -6,4 +6,12 @@ pydantic
 uvicorn
 httpx
 pytest
+
+sqlalchemy
+pymysql
+cryptography
+python-dotenv
+
+pydantic-settings
+
 -e .

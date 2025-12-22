@@ -6,6 +6,7 @@ import socket
 import inspect
 from .schemas import SimDevice, DeviceType, LogRecord, MotorDirection
 from .drivers.db import get_db
+from .drivers import db as db_driver
 from .drivers.device_manager import get_device_manager
 
 tags_metadata = [
@@ -60,13 +61,15 @@ def add_record(db, logged_device_uuid: str = "", description: str = ""):
             description=description,
             timestamp=datetime.now(),
         )
-        db.add_log(record)
+        # db.add_log(record)
+        db_driver.add_log(db, record)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
 
 def match_device_type(db, device_uuid: str, device_type: DeviceType) -> None:
-    matching_devices = [d for d in db.get_devices() if d.type == device_type]
+    # matching_devices = [d for d in db.get_devices() if d.type == device_type]
+    matching_devices = [d for d in db_driver.get_devices(db) if d.type == device_type]
     if device_uuid not in [d.uuid for d in matching_devices]:
         device_detail = device_type.value.lower().replace("_", " ")
         add_record(
@@ -93,7 +96,8 @@ def health_check():
 @app.get("/devices/", response_model=List[SimDevice], tags=["General Device Control"])
 def list_devices(db=Depends(get_db)):
     add_record(db, description="Listed all devices")
-    return db.get_devices()
+    # return db.get_devices()
+    return db_driver.get_devices(db)
 
 
 @app.post("/devices/", response_model=SimDevice, tags=["General Device Control"])
@@ -103,7 +107,8 @@ def create_device(
     try:
         add_record(db, description=f"Attempting to create device {device.uuid}")
         manager.add_device(device)
-        db.add_device(device)
+        # db.add_device(device)
+        db_driver.add_device(db, device)
     except ValueError as e:
         add_record(db, description=f"Failed to create device {device.uuid}: {str(e)}")
         raise HTTPException(status_code=400, detail=str(e))
@@ -118,7 +123,8 @@ def create_device(
 )
 def get_devices_by_type(device_type: DeviceType, db=Depends(get_db)):
     add_record(db, description=f"Attempting to get devices by type {device_type}")
-    matching_devices = [d for d in db.get_devices() if d.type == device_type]
+    # matching_devices = [d for d in db.get_devices() if d.type == device_type]
+    matching_devices = [d for d in db_driver.get_devices(db) if d.type == device_type]
     add_record(
         db, description=f"Found {len(matching_devices)} devices of type {device_type}"
     )
@@ -135,11 +141,13 @@ def update_device_description(
 ):
     try:
         add_record(db, description=f"Attempting to update device {device_uuid}")
-        devices = db.get_devices()
+        # devices = db.get_devices()
+        devices = db_driver.get_devices(db)
         for device in devices:
             if device.uuid == device_uuid:
                 device.description = new_description
-                db.update_device(device_uuid, device)
+                # db.update_device(device_uuid, device)
+                db_driver.update_device(db, device_uuid, device)
                 add_record(db, description=f"Successfully updated device {device_uuid}")
                 return device
         raise ValueError("Device not found")
@@ -156,11 +164,13 @@ def update_device_description(
 def update_device_name(device_uuid: str, new_name: str, db=Depends(get_db)):
     try:
         add_record(db, description=f"Attempting to update device {device_uuid}")
-        devices = db.get_devices()
+        # devices = db.get_devices()
+        devices = db_driver.get_devices(db)
         for device in devices:
             if device.uuid == device_uuid:
                 device.name = new_name
-                db.update_device(device_uuid, device)
+                # db.update_device(device_uuid, device)
+                db_driver.update_device(db, device_uuid, device)
                 add_record(db, description=f"Successfully updated device {device_uuid}")
                 return device
         raise ValueError("Device not found")
@@ -191,8 +201,9 @@ def delete_device(
 ):
     try:
         add_record(db, description=f"Attempting to delete device {device_uuid}")
-        manager.remove_device(device_uuid)
-        db.delete_device(device_uuid)
+        # manager.remove_device(device_uuid)
+        # db.delete_device(device_uuid)
+        db_driver.delete_device(db, device_uuid)
     except ValueError as e:
         add_record(db, description=f"Failed to delete device {device_uuid}: {str(e)}")
         raise HTTPException(status_code=404, detail=str(e))
@@ -742,7 +753,8 @@ def set_stepper_motor_relative_location(
 @app.get("/logs/", response_model=List[LogRecord], tags=["Log Management"])
 def list_logs(db=Depends(get_db)):
     add_record(db, description="Listed all log records")
-    return db.get_log()
+    # return db.get_log()
+    return db_driver.get_logs(db)
 
 
 @app.get("/logs/filtered", response_model=List[LogRecord], tags=["Log Management"])
@@ -752,7 +764,8 @@ def list_logs_by_time(
     db=Depends(get_db),
 ):
     add_record(db, description=f"Listed log records from {start_time} to {end_time}")
-    matching_logs = [r for r in db.get_log() if start_time <= r.timestamp <= end_time]
+    # matching_logs = [r for r in db.get_log() if start_time <= r.timestamp <= end_time]
+    matching_logs = [r for r in db_driver.get_logs(db) if start_time <= r.timestamp <= end_time]
     return matching_logs
 
 
@@ -769,7 +782,8 @@ def create_entry(
             description=description,
             timestamp=datetime.now(),
         )
-        db.add_log(record)
+        # db.add_log(record)
+        db_driver.add_log(db, record)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     return record

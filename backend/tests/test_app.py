@@ -2,26 +2,36 @@ import pytest
 from fastapi.testclient import TestClient
 from sim_device_control import schemas
 from sim_device_control.app import app
-from sim_device_control.drivers import db, device_manager
-from sim_device_control.drivers.device_manager import get_device_manager
-from sim_device_control.drivers.db import get_db
+from sim_device_control.drivers import device_manager
+from sim_device_control import schemas
+from sim_device_control.drivers import device_manager as dm_mod
 
 
-app.dependency_overrides[get_db] = lambda: db.fake_db_session
-app.dependency_overrides[get_device_manager] = lambda: device_manager.device_manager
-
-client = TestClient(app)
+@pytest.fixture
+def client(app_with_test_db):
+    return TestClient(app_with_test_db)
 
 
 @pytest.fixture(autouse=True)
-def clear_tables():
-    db.devices_table.clear()
-    db.logs_table.clear()
+def clear_drivers():
     device_manager.device_manager.drivers.clear()
     yield
-    db.devices_table.clear()
-    db.logs_table.clear()
     device_manager.device_manager.drivers.clear()
+
+
+@pytest.fixture(autouse=True)
+def patch_manager_updates(monkeypatch):
+    def _get_status(self, uuid: str, db):
+        device = self._get_device(uuid)
+        return device._get_status()
+
+    def _get_version(self, uuid: str, db):
+        device = self._get_device(uuid)
+        return device._get_version()
+
+    monkeypatch.setattr(dm_mod.DeviceManager, "get_status", _get_status)
+    monkeypatch.setattr(dm_mod.DeviceManager, "get_version", _get_version)
+    yield
 
 
 def make_device_payload(
@@ -40,13 +50,13 @@ def make_device_payload(
 # region general device operations tests
 
 
-def test_list_devices_empty():
+def test_list_devices_empty(client):
     r = client.get("/devices/")
     assert r.status_code == 200
     assert r.json() == []
 
 
-def test_create_device():
+def test_create_device(client):
     payload = make_device_payload("uuid-100")
     r = client.post("/devices/", json=payload)
     assert r.status_code == 200
@@ -54,7 +64,7 @@ def test_create_device():
     assert created["uuid"] == "uuid-100"
 
 
-def test_get_devices_by_type():
+def test_get_devices_by_type(client):
     payload = make_device_payload("uuid-101")
     client.post("/devices/", json=payload)
     device_type = payload["type"]
@@ -65,7 +75,7 @@ def test_get_devices_by_type():
     assert any(d["uuid"] == payload["uuid"] for d in matched)
 
 
-def test_update_device_description():
+def test_update_device_description(client):
     payload = make_device_payload("uuid-102")
     client.post("/devices/", json=payload)
     updated_description = "an updated description"
@@ -78,7 +88,7 @@ def test_update_device_description():
     assert updated["description"] == updated_description
 
 
-def test_update_device_name():
+def test_update_device_name(client):
     payload = make_device_payload("uuid-103")
     client.post("/devices/", json=payload)
     updated_name = "renamed-device"
@@ -97,7 +107,7 @@ def test_update_device_name():
 #     assert r.json()["name"] == "renamed"
 
 
-def test_delete_device():
+def test_delete_device(client):
     payload = make_device_payload("uuid-104")
     client.post("/devices/", json=payload)
     r = client.delete(f"/devices/uuid-104")
@@ -114,7 +124,7 @@ def test_delete_device():
 # region all device types tests
 
 
-def test_get_device_status():
+def test_get_device_status(client):
     payload = make_device_payload("uuid-201")
     client.post("/devices/", json=payload)
     r = client.get(f"/devices/get_status", params={"device_uuid": "uuid-201"})
@@ -122,7 +132,7 @@ def test_get_device_status():
     assert isinstance(r.json(), str)
 
 
-def test_get_device_version():
+def test_get_device_version(client):
     payload = make_device_payload("uuid-202")
     client.post("/devices/", json=payload)
     r = client.get(f"/devices/get_version", params={"device_uuid": "uuid-202"})
@@ -135,7 +145,7 @@ def test_get_device_version():
 # region temperature sensor operations tests
 
 
-def test_read_temperature():
+def test_read_temperature(client):
     payload = make_device_payload(
         "uuid-301", type_val=schemas.DeviceType.TEMPERATURE_SENSOR
     )
@@ -153,7 +163,7 @@ def test_read_temperature():
 # region pressure sensor operations tests
 
 
-def test_read_pressure():
+def test_read_pressure(client):
     payload = make_device_payload(
         "uuid-302", type_val=schemas.DeviceType.PRESSURE_SENSOR
     )
@@ -170,7 +180,7 @@ def test_read_pressure():
 # region humidity sensor operations tests
 
 
-def test_read_humidity():
+def test_read_humidity(client):
     payload = make_device_payload(
         "uuid-303", type_val=schemas.DeviceType.HUMIDITY_SENSOR
     )
@@ -187,7 +197,7 @@ def test_read_humidity():
 # region dc motor operations tests
 
 
-def test_read_dc_motor_speed():
+def test_read_dc_motor_speed(client):
     payload = make_device_payload("uuid-304", type_val=schemas.DeviceType.DC_MOTOR)
     client.post("/devices/", json=payload)
     r = client.get(f"/devices/dc_motor/get_speed", params={"device_uuid": "uuid-304"})
@@ -195,7 +205,7 @@ def test_read_dc_motor_speed():
     assert isinstance(r.json(), float)
 
 
-def test_read_dc_motor_direction():
+def test_read_dc_motor_direction(client):
     payload = make_device_payload("uuid-305", type_val=schemas.DeviceType.DC_MOTOR)
     client.post("/devices/", json=payload)
     r = client.get(
@@ -205,7 +215,7 @@ def test_read_dc_motor_direction():
     assert r.json() in [dir.value for dir in schemas.MotorDirection]
 
 
-def test_set_dc_motor_speed():
+def test_set_dc_motor_speed(client):
     payload = make_device_payload("uuid-306", type_val=schemas.DeviceType.DC_MOTOR)
     client.post("/devices/", json=payload)
     r = client.put(
@@ -218,7 +228,7 @@ def test_set_dc_motor_speed():
     assert r2.json() == 75.0
 
 
-def test_set_dc_motor_direction():
+def test_set_dc_motor_direction(client):
     payload = make_device_payload("uuid-307", type_val=schemas.DeviceType.DC_MOTOR)
     client.post("/devices/", json=payload)
     r = client.put(
@@ -241,7 +251,7 @@ def test_set_dc_motor_direction():
 # region stepper motor operations tests
 
 
-def test_read_stepper_motor_speed():
+def test_read_stepper_motor_speed(client):
     payload = make_device_payload("uuid-308", type_val=schemas.DeviceType.STEPPER_MOTOR)
     client.post("/devices/", json=payload)
     r = client.get(
@@ -251,7 +261,7 @@ def test_read_stepper_motor_speed():
     assert isinstance(r.json(), float)
 
 
-def test_read_stepper_motor_direction():
+def test_read_stepper_motor_direction(client):
     payload = make_device_payload("uuid-309", type_val=schemas.DeviceType.STEPPER_MOTOR)
     client.post("/devices/", json=payload)
     r = client.get(
@@ -261,7 +271,7 @@ def test_read_stepper_motor_direction():
     assert r.json() in [dir.value for dir in schemas.MotorDirection]
 
 
-def test_read_stepper_motor_acceleration():
+def test_read_stepper_motor_acceleration(client):
     payload = make_device_payload("uuid-310", type_val=schemas.DeviceType.STEPPER_MOTOR)
     client.post("/devices/", json=payload)
     r = client.get(
@@ -271,7 +281,7 @@ def test_read_stepper_motor_acceleration():
     assert isinstance(r.json(), float)
 
 
-def test_read_stepper_motor_location():
+def test_read_stepper_motor_location(client):
     payload = make_device_payload("uuid-311", type_val=schemas.DeviceType.STEPPER_MOTOR)
     client.post("/devices/", json=payload)
     r = client.get(
@@ -281,7 +291,7 @@ def test_read_stepper_motor_location():
     assert isinstance(r.json(), int)
 
 
-def test_set_stepper_motor_speed():
+def test_set_stepper_motor_speed(client):
     payload = make_device_payload("uuid-312", type_val=schemas.DeviceType.STEPPER_MOTOR)
     client.post("/devices/", json=payload)
     r = client.put(
@@ -296,7 +306,7 @@ def test_set_stepper_motor_speed():
     assert r2.json() == 50.0
 
 
-def test_set_stepper_motor_direction():
+def test_set_stepper_motor_direction(client):
     payload = make_device_payload("uuid-313", type_val=schemas.DeviceType.STEPPER_MOTOR)
     client.post("/devices/", json=payload)
     r = client.put(
@@ -314,7 +324,7 @@ def test_set_stepper_motor_direction():
     assert r2.json() == schemas.MotorDirection.BACKWARD.value
 
 
-def test_set_stepper_motor_acceleration():
+def test_set_stepper_motor_acceleration(client):
     payload = make_device_payload("uuid-314", type_val=schemas.DeviceType.STEPPER_MOTOR)
     client.post("/devices/", json=payload)
     r = client.put(
@@ -329,7 +339,7 @@ def test_set_stepper_motor_acceleration():
     assert r2.json() == 10.0
 
 
-def test_move_stepper_motor_absolute():
+def test_move_stepper_motor_absolute(client):
     payload = make_device_payload("uuid-315", type_val=schemas.DeviceType.STEPPER_MOTOR)
     client.post("/devices/", json=payload)
     r = client.put(
@@ -344,7 +354,7 @@ def test_move_stepper_motor_absolute():
     assert r2.json() == 100
 
 
-def test_move_stepper_motor_relative():
+def test_move_stepper_motor_relative(client):
     payload = make_device_payload("uuid-316", type_val=schemas.DeviceType.STEPPER_MOTOR)
     client.post("/devices/", json=payload)
     client.put(
@@ -370,7 +380,7 @@ def test_move_stepper_motor_relative():
 # region logging operations tests
 
 
-def test_create_log():
+def test_create_log(client):
     r = client.post(
         "/logs/", params={"action": "act", "description": "desc", "device_uuid": ""}
     )
@@ -379,7 +389,7 @@ def test_create_log():
     assert log["action"] == "act"
 
 
-def test_list_logs():
+def test_list_logs(client):
     client.post(
         "/logs/", params={"action": "act2", "description": "d", "device_uuid": ""}
     )
