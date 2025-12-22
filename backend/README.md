@@ -53,6 +53,19 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
+Configure environment variables:
+
+```bash
+cp .env.example .env
+```
+
+Edit `.env` and set your Database user and password:
+
+```
+DATABASE_USER="example_user"
+DATABASE_PASSWORD="example_password"
+```
+
 Run the API locally with uvicorn (module entrypoint):
 
 ```bash
