@@ -8,6 +8,7 @@ As of now the project contains:
 - Python fastapi backend
 - Typescript React as a UI framework and Vite as a building tool and development server
 - MySQL Database that saves logs and devices
+- Rust based device simulation via MQTT
 
 Project folders layout:
 
@@ -20,12 +21,16 @@ Project folders layout:
 │   │   │   └── drivers
 │   │   │       └── base
 │   └── tests
-└── frontend
-    └── src
-        ├── assets
-        ├── components
-        ├── panels
-        └── utils
+├── frontend
+│   └── src
+│       ├── assets
+│       ├── components
+│       ├── panels
+│       └── utils
+└── sim-device
+    ├── src
+    │   └── drivers
+
 ```
 
 **Docker**
@@ -55,5 +60,5 @@ If you need to run a specific component of the project, visit its directory and 
 
 ## TODO
 - Implement MQTT protocol in the backend
-- Create a simple rust project to behave as a simulated device
 - Dockerize the rust project
+- Create a dockerized MQTT broker
