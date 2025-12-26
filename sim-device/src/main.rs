@@ -12,6 +12,7 @@ use crate::drivers::device::{Device, DevicePayload, DeviceType};
 
 #[derive(Debug, Deserialize)]
 struct MqttCommand {
+    id: String,
     command: String,
     parameter: String,
 }
@@ -64,12 +65,13 @@ fn main() {
             let topic = format!("sim-device-control/{}/response", device_id);
             println!("topic: {}", topic);
             let mut payload  = DevicePayload {
+                id : "".to_string(),
                 device_id: device_id.to_string(),
-                message: message.to_string(),
                 response: None,
                 timestamp: chrono::Utc::now().timestamp_millis() as u64,
             };
             if let Some(message) = serde_json::from_str::<MqttCommand>(&message).ok() {
+                payload.id = message.id;
                 if let Some(response) = device.operate(&message.command, &message.parameter) {
                     payload.response = Some(response);
                 } else {

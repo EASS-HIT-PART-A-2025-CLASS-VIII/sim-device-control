@@ -23,8 +23,8 @@ pub struct Device {
 }
 
 pub struct DevicePayload {
+    pub id: String,
     pub device_id: String,
-    pub message: String,
     pub response: Option<String>,
     pub timestamp: u64,
 }
@@ -33,13 +33,13 @@ impl DevicePayload {
     pub fn to_string(&self) -> String {
         if let Some(response) = &self.response {
             return format!(
-                "{{\"device_id\":\"{}\",\"message\":\"{}\",\"response\":\"{}\",\"timestamp\":{}}}",
-                self.device_id, self.message, response, self.timestamp
+                "{{\"id\":\"{}\",\"device_id\":\"{}\",\"response\":\"{}\",\"timestamp\":{}}}",
+                self.id, self.device_id, response, self.timestamp
             );
         } else {
             return format!(
-                "{{\"device_id\":\"{}\",\"message\":\"{}\",\"response\":\"none\",\"timestamp\":{}}}",
-                self.device_id, self.message, self.timestamp
+                "{{\"id\":\"{}\",\"device_id\":\"{}\",\"response\":\"none\",\"timestamp\":{}}}",
+                self.id, self.device_id, self.timestamp
             );
         }
     }

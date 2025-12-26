@@ -83,35 +83,35 @@ Notes:
 	- Disconnect payload: `{ "device_id": "<id>", "device_type": "<type>", "status": "disconnected" }`
 
 - Command topic: `sim-device-control/<device_id>/command`
-    - Payload example: `{ "command": "<cmd>", "parameter": "<param>" }`
+    - Payload example: `{ "id": "<cmd_id>", "command": "<cmd>", "parameter": "<param>" }`
     - Commands per device type:
         - All device types:
-            - `{ "command": "get_status", "parameter": "" }`
-            - `{ "command": "get_version", "parameter": "" }`
+            - `{ "id": "<cmd_id>", "command": "get_status", "parameter": "" }`
+            - `{ "id": "<cmd_id>", "command": "get_version", "parameter": "" }`
         - temperature_sensor:
-            - `{ "command": "read_temperature", "parameter": "" }`
+            - `{ "id": "<cmd_id>", "command": "read_temperature", "parameter": "" }`
         - pressure_sensor:
-            - `{ "command": "read_pressure", "parameter": "" }`
+            - `{ "id": "<cmd_id>", "command": "read_pressure", "parameter": "" }`
         - humidity_sensor:
-            - `{ "command": "read_humidity", "parameter": "" }`
+            - `{ "id": "<cmd_id>", "command": "read_humidity", "parameter": "" }`
         - dc_motor:
-            - `{ "command": "get_speed", "parameter": "" }`
-            - `{ "command": "set_speed", "parameter": "<f64 between 0.0-100.0>" }`
-            - `{ "command": "get_direction", "parameter": "" }`
-            - `{ "command": "set_direction", "parameter": "<forward/backward>" }`
+            - `{ "id": "<cmd_id>", "command": "get_speed", "parameter": "" }`
+            - `{ "id": "<cmd_id>", "command": "set_speed", "parameter": "<f64 between 0.0-100.0>" }`
+            - `{ "id": "<cmd_id>", "command": "get_direction", "parameter": "" }`
+            - `{ "id": "<cmd_id>", "command": "set_direction", "parameter": "<forward/backward>" }`
         - stepper_motor:
-            - `{ "command": "get_speed", "parameter": "" }`
-            - `{ "command": "set_speed", "parameter": "<f64>" }`
-            - `{ "command": "get_acceleration", "parameter": "" }`
-            - `{ "command": "set_acceleration", "parameter": "<f64>" }`
-            - `{ "command": "get_direction", "parameter": "" }`
-            - `{ "command": "set_direction", "parameter": "<forward/backward>" }`
-            - `{ "command": "get_location", "parameter": "" }`
-            - `{ "command": "set_location_relative", "parameter": "<f64>" }`
-            - `{ "command": "set_location_absolute", "parameter": "<f64>" }`
+            - `{ "id": "<cmd_id>", "command": "get_speed", "parameter": "" }`
+            - `{ "id": "<cmd_id>", "command": "set_speed", "parameter": "<f64>" }`
+            - `{ "id": "<cmd_id>", "command": "get_acceleration", "parameter": "" }`
+            - `{ "id": "<cmd_id>", "command": "set_acceleration", "parameter": "<f64>" }`
+            - `{ "id": "<cmd_id>", "command": "get_direction", "parameter": "" }`
+            - `{ "id": "<cmd_id>", "command": "set_direction", "parameter": "<forward/backward>" }`
+            - `{ "id": "<cmd_id>", "command": "get_location", "parameter": "" }`
+            - `{ "id": "<cmd_id>", "command": "set_location_relative", "parameter": "<f64>" }`
+            - `{ "id": "<cmd_id>", "command": "set_location_absolute", "parameter": "<f64>" }`
 
 - Response topic: `sim-device-control/<device_id>/response`
-    - Payload example: `{ "device_id": "<id>", "message": "<original>", "response": "<result>", "timestamp": <millis> }`
+    - Payload example: `{ "id": "<cmd_id>", "device_id": "<id>", "response": "<result>", "timestamp": <millis> }`
 
 ## Graceful Shutdown
 
