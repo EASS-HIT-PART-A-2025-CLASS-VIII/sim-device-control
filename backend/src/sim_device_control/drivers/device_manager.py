@@ -1,6 +1,9 @@
+import time
+import threading
 from typing import Any, Dict, List, Union, cast
 from fastapi import Depends
 from .db import get_db
+from .mqtt import MqttDriver
 from . import db as db_driver
 from ..schemas import DeviceType, MotorDirection, SimDevice
 from .base.base_controller import BaseControllerDriver
@@ -17,23 +20,75 @@ DeviceDriverType = Union[BaseSensorDriver, BaseControllerDriver]
 
 class DeviceManager:
     def __init__(self):
+        self.mqtt_session = MqttDriver("broker.hivemq.com")
+        self.mqtt_session.connect()
+        self.mqtt_session.start()
+
+        self._stop_event = threading.Event()
+        self._drivers_lock = threading.Lock()
+
+        def monitor_connections(mqtt_session, add_device, remove_device):
+            known = {}
+
+            while not self._stop_event.wait(1):
+                with mqtt_session._device_lock:
+                    current = dict(mqtt_session.devices)
+
+                # Device connected
+                for device_id, device_info in current.items():
+                    if device_id not in known:
+                        print(f"[CONNECTED] {device_id} ({device_info['type']})")
+                        try:
+                            add_device(SimDevice(
+                                uuid=device_id,
+                                type=DeviceType(device_info["type"]),
+                                name=device_info["name"],
+                                description=device_info["description"],
+                                status=device_info["status"],
+                                version=device_info["version"]
+                            ))
+                            print(f"Added device {device_id} of type {device_info['type']}")
+                        except Exception as e:
+                            print(f"Failed to add device {device_id}: {e}")
+
+                # Device disconnected
+                for device_id in list(known):
+                    if device_id not in current:
+                        print(f"[DISCONNECTED] {device_id}")
+                        try:
+                            remove_device(device_id)
+                            print(f"Removed device {device_id}")
+                        except Exception as e:
+                            print(f"Failed to remove device {device_id}: {e}")
+
+                known = current
+
         self.drivers: List[DeviceDriverType] = []
         db_gen = get_db()
-        db = next(db_gen)
+        self.db = next(db_gen)
         try:
-            devices_to_ping: List[SimDevice] = db_driver.get_devices(db)
+            devices_to_ping: List[SimDevice] = db_driver.get_devices(self.db)
             for device in devices_to_ping:
                 try:
                     self.add_device(device)
                     device_driver = self._get_device(device.uuid)
                     status = device_driver._get_status()
                     device.status = status
-                    db_driver.update_device(db, device.uuid, device)
+                    db_driver.update_device(self.db, device.uuid, device)
                 except ValueError:
                     self.remove_device(device.uuid)
-                    db_driver.delete_device(db, device.uuid)
+                    db_driver.delete_device(self.db, device.uuid)
         finally:
             db_gen.close()
+            monitor_thread = threading.Thread(
+                target=monitor_connections,
+                args=(self.mqtt_session, self.add_device, self.remove_device),
+                daemon=True
+            )
+            monitor_thread.start()
+
+    def stop(self):
+        self._stop_event.set()
 
     # region internal methods
 
@@ -46,17 +101,21 @@ class DeviceManager:
     }
 
     def add_device(self, device: SimDevice):
-        if device.uuid in [d.uuid for d in self.drivers]:
-            raise ValueError(f"Device {device.uuid} already exists")
-        try:
-            driver_class = self.driver_map[device.type]
-        except KeyError:
-            raise ValueError(f"Unsupported device type: {device.type}")
-        self.drivers.append(driver_class(device.uuid))
+        with self._drivers_lock:
+            if device.uuid in [d.uuid for d in self.drivers]:
+                raise ValueError(f"Device {device.uuid} already exists")
+            try:
+                driver_class = self.driver_map[device.type]
+            except KeyError:
+                raise ValueError(f"Unsupported device type: {device.type}")
+            self.drivers.append(driver_class(device.uuid))
+            db_driver.add_device(self.db, device)
 
     def remove_device(self, uuid: str):
-        device_to_delete = self._get_device(uuid)
-        self.drivers.remove(device_to_delete)
+        with self._drivers_lock:
+            device_to_delete = self._get_device(uuid)
+            self.drivers.remove(device_to_delete)
+            db_driver.delete_device(self.db, device_to_delete.uuid)
 
     def _get_device(self, uuid: str):
         for device in self.drivers:
@@ -73,24 +132,24 @@ class DeviceManager:
 
     # region all device types operations
 
-    def get_status(self, uuid: str, db):
+    def get_status(self, uuid: str):
         device = self._get_device(uuid)
         status = device._get_status()
         # db_device = db.get_device_by_uuid(uuid)
-        db_device = db_driver.get_device_by_uuid(db, uuid)
+        db_device = db_driver.get_device_by_uuid(self.db, uuid)
         db_device.status = status
         # db.update_device(uuid, updated_db_device)
-        db_driver.update_device(db, uuid, db_device)
+        db_driver.update_device(self.db, uuid, db_device)
         return status
 
-    def get_version(self, uuid: str, db):
+    def get_version(self, uuid: str):
         device = self._get_device(uuid)
         version = device._get_version()
         # db_device = db.get_device_by_uuid(uuid)
-        db_device = db_driver.get_device_by_uuid(db, uuid)
+        db_device = db_driver.get_device_by_uuid(self.db, uuid)
         db_device.version = version
         # db.update_device(uuid, updated_db_device)
-        db_driver.update_device(db, uuid, db_device)
+        db_driver.update_device(self.db, uuid, db_device)
         return version
 
     # endregion

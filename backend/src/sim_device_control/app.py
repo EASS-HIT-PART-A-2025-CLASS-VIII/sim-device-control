@@ -108,7 +108,7 @@ def create_device(
         add_record(db, description=f"Attempting to create device {device.uuid}")
         manager.add_device(device)
         # db.add_device(device)
-        db_driver.add_device(db, device)
+        # db_driver.add_device(db, device)
     except ValueError as e:
         add_record(db, description=f"Failed to create device {device.uuid}: {str(e)}")
         raise HTTPException(status_code=400, detail=str(e))
@@ -201,9 +201,9 @@ def delete_device(
 ):
     try:
         add_record(db, description=f"Attempting to delete device {device_uuid}")
-        # manager.remove_device(device_uuid)
+        manager.remove_device(device_uuid)
         # db.delete_device(device_uuid)
-        db_driver.delete_device(db, device_uuid)
+        # db_driver.delete_device(db, device_uuid)
     except ValueError as e:
         add_record(db, description=f"Failed to delete device {device_uuid}: {str(e)}")
         raise HTTPException(status_code=404, detail=str(e))
@@ -223,7 +223,7 @@ def get_device_status(
 ):
     try:
         add_record(db, logged_device_uuid=device_uuid, description="Getting status")
-        device_status = manager.get_status(device_uuid, db)
+        device_status = manager.get_status(device_uuid)
         add_record(
             db, logged_device_uuid=device_uuid, description=f"Status: {device_status}"
         )
@@ -243,7 +243,7 @@ def get_device_version(
 ):
     try:
         add_record(db, logged_device_uuid=device_uuid, description="Getting version")
-        device_version = manager.get_version(device_uuid, db)
+        device_version = manager.get_version(device_uuid)
         add_record(
             db, logged_device_uuid=device_uuid, description=f"Version: {device_version}"
         )

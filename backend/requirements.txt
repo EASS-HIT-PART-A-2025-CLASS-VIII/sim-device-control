@@ -12,6 +12,8 @@ pymysql
 cryptography
 python-dotenv
 
+paho-mqtt
+
 pydantic-settings
 
 -e .
