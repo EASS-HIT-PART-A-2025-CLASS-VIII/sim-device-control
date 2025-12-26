@@ -3,6 +3,8 @@ mod drivers;
 use rumqttc::QoS;
 use dotenvy::dotenv;
 use std::env;
+use std::sync::Arc;
+use std::sync::atomic::{AtomicBool, Ordering};
 use serde::Deserialize;
 
 use crate::drivers::mqtt::{connect, read_payload};
@@ -28,6 +30,19 @@ fn main() {
 
     let (client, mut connection) = connect(&device_id, &broker, port);
 
+    // Setup signal handler for graceful shutdown
+    let running = Arc::new(AtomicBool::new(true));
+    let r = running.clone();
+    let client_shutdown = client.clone();
+    let device_id_shutdown = device_id.clone();
+    let device_type_shutdown = device_type.clone();
+    
+    ctrlc::set_handler(move || {
+        println!("\nShutdown signal received, disconnecting...");
+        send_disconnect_notification(&client_shutdown, &device_id_shutdown, &device_type_shutdown);
+        r.store(false, Ordering::SeqCst);
+    }).expect("Error setting Ctrl-C handler");
+
     let topic = "sim-device-control/connections";
     let payload = format!("{{\"device_id\":\"{}\",\"device_type\":\"{}\",\"status\":\"connected\"}}", device_id, device_type.to_string());
     client
@@ -40,6 +55,9 @@ fn main() {
 
 
     for event in connection.iter() {
+        if !running.load(Ordering::SeqCst) {
+            break;
+        }
         let payload = read_payload(event);
         if let Some(message) = payload {
             println!("Received message: {}", message);
@@ -68,6 +86,34 @@ fn main() {
                     payload.to_string())
                     .unwrap();
             println!("Published message: {}", payload.to_string());
+        }
+    }
+    
+    // Normal exit - send disconnect notification if not already sent
+    if running.load(Ordering::SeqCst) {
+        println!("Application closing, disconnecting...");
+        send_disconnect_notification(&client, &device_id, &device_type);
+    }
+    
+    println!("Shutdown complete.");
+}
+
+fn send_disconnect_notification(client: &rumqttc::Client, device_id: &str, device_type: &DeviceType) {
+    let topic = "sim-device-control/connections";
+    let payload = format!(
+        "{{\"device_id\":\"{}\",\"device_type\":\"{}\",\"status\":\"disconnected\"}}",
+        device_id,
+        device_type.to_string()
+    );
+    
+    match client.publish(topic, QoS::AtLeastOnce, false, payload) {
+        Ok(_) => {
+            println!("Disconnect notification sent successfully");
+            // Give time for the message to be sent
+            std::thread::sleep(std::time::Duration::from_millis(500));
+        }
+        Err(e) => {
+            eprintln!("Failed to send disconnect notification: {}", e);
         }
     }
 }

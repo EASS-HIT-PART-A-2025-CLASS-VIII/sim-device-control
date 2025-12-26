@@ -4,6 +4,7 @@ use crate::drivers::humidity_sensor::HumiditySensor;
 use crate::drivers::dc_motor::DcMotor;
 use crate::drivers::stepper_motor::StepperMotor;
 
+#[derive(Clone)]
 pub enum DeviceType {
     TemperatureSensor,
     PressureSensor,
