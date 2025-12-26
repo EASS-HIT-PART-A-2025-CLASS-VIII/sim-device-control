@@ -45,6 +45,13 @@ cp .env.example .env
 - `MQTT_BROKER`: broker host or IP (e.g., `localhost`, `mqtt`, `broker.hivemq.com`)
 - `MQTT_PORT`: broker port (e.g., `1883`)
 
+The app reads the configuration file `device_info.json`:
+
+Configure the device's general information (these parameters can later be changed via the relevant MQTT payloads):
+
+ - `"name"`: human readable name for the device
+ - `"description"`: human readable description for the device
+
 ## Build & Run (Local)
 
 ```bash
@@ -79,8 +86,8 @@ Notes:
 ## MQTT Topics & Payloads
 
 - Connection status topic: `sim-device-control/connections`
-	- Connect payload: `{ "device_id": "<id>", "device_type": "<type>", "status": "connected" }`
-	- Disconnect payload: `{ "device_id": "<id>", "device_type": "<type>", "status": "disconnected" }`
+	- Connect payload: `{"device_id": "<id>", "device_type": "<type>", "name": "<name>", "description": "<description>", "status": "<status>", "version": "<version>", "action": "connected"}`
+	- Disconnect payload: `{ "device_id": "<id>", "device_type": "<type>", "action": "disconnected" }`
 
 - Command topic: `sim-device-control/<device_id>/command`
     - Payload example: `{ "id": "<cmd_id>", "command": "<cmd>", "parameter": "<param>" }`
@@ -88,6 +95,8 @@ Notes:
         - All device types:
             - `{ "id": "<cmd_id>", "command": "get_status", "parameter": "" }`
             - `{ "id": "<cmd_id>", "command": "get_version", "parameter": "" }`
+            - `{ "id": "<cmd_id>", "command": "set_name", "parameter": "<new_name>" }`
+            - `{ "id": "<cmd_id>", "command": "set_description", "parameter": "<new_description>" }`
         - temperature_sensor:
             - `{ "id": "<cmd_id>", "command": "read_temperature", "parameter": "" }`
         - pressure_sensor:

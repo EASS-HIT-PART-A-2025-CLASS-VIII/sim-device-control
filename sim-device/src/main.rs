@@ -8,7 +8,7 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use serde::Deserialize;
 
 use crate::drivers::mqtt::{connect, read_payload};
-use crate::drivers::device::{Device, DevicePayload, DeviceType};
+use crate::drivers::device::{self, Device, DevicePayload, DeviceType};
 
 #[derive(Debug, Deserialize)]
 struct MqttCommand {
@@ -45,7 +45,22 @@ fn main() {
     }).expect("Error setting Ctrl-C handler");
 
     let topic = "sim-device-control/connections";
-    let payload = format!("{{\"device_id\":\"{}\",\"device_type\":\"{}\",\"status\":\"connected\"}}", device_id, device_type.to_string());
+    let device_status = device.operate("get_status", "").unwrap().to_string();
+    let device_version = device.operate("get_version", "").unwrap().to_string();
+    let payload = format!(
+        "{{\"device_id\":\"{}\",
+        \"device_type\":\"{}\",
+        \"name\":\"{}\",
+        \"description\":\"{}\",
+        \"status\":\"{}\",
+        \"version\":\"{}\",
+        \"action\":\"connected\"}}",
+        device_id,
+        device_type.to_string(),
+        device.name,
+        device.description,
+        device_status,
+        device_version);
     client
         .publish(
             topic,
@@ -103,7 +118,7 @@ fn main() {
 fn send_disconnect_notification(client: &rumqttc::Client, device_id: &str, device_type: &DeviceType) {
     let topic = "sim-device-control/connections";
     let payload = format!(
-        "{{\"device_id\":\"{}\",\"device_type\":\"{}\",\"status\":\"disconnected\"}}",
+        "{{\"device_id\":\"{}\",\"device_type\":\"{}\",\"action\":\"disconnected\"}}",
         device_id,
         device_type.to_string()
     );

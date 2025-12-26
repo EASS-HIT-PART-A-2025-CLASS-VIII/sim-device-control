@@ -4,6 +4,12 @@ use crate::drivers::humidity_sensor::HumiditySensor;
 use crate::drivers::dc_motor::DcMotor;
 use crate::drivers::stepper_motor::StepperMotor;
 
+use std::fs::File;
+use std::io::BufReader;
+use serde::Deserialize;
+use serde_json::Value;
+use std::fs;
+
 #[derive(Clone)]
 pub enum DeviceType {
     TemperatureSensor,
@@ -13,6 +19,12 @@ pub enum DeviceType {
     StepperMotor
 }
 
+#[derive(Deserialize, Debug)]
+struct DeviceInfo {
+    pub name: String,
+    pub description: String,
+}
+
 pub struct Device {
     pub device_type: DeviceType,
     pub temperature_sensor: Option<TemperatureSensor>,
@@ -20,6 +32,8 @@ pub struct Device {
     pub humidity_sensor: Option<HumiditySensor>,
     pub dc_motor: Option<DcMotor>,
     pub stepper_motor: Option<StepperMotor>,
+    pub name: String,
+    pub description: String,
 }
 
 pub struct DevicePayload {
@@ -80,6 +94,11 @@ impl DeviceType {
 
 impl Device {
     pub fn new(device_type: DeviceType) -> Device {
+        let file = File::open("device_info.json").expect("Cannot open file");
+        let reader = BufReader::new(file);
+
+        let device_info: DeviceInfo = serde_json::from_reader(reader).expect("Error parsing JSON");
+
         match device_type {
             DeviceType::TemperatureSensor => Device {
                 device_type,
@@ -88,6 +107,8 @@ impl Device {
                 humidity_sensor: None,
                 dc_motor: None,
                 stepper_motor: None,
+                name: device_info.name,
+                description: device_info.description,
             },
             DeviceType::PressureSensor => Device {
                 device_type,
@@ -96,6 +117,8 @@ impl Device {
                 humidity_sensor: None,
                 dc_motor: None,
                 stepper_motor: None,
+                name: device_info.name,
+                description: device_info.description,
             },
             DeviceType::HumiditySensor => Device {
                 device_type,
@@ -104,6 +127,8 @@ impl Device {
                 humidity_sensor: Some(HumiditySensor),
                 dc_motor: None,
                 stepper_motor: None,
+                name: device_info.name,
+                description: device_info.description,
             },
             DeviceType::DcMotor => Device {
                 device_type,
@@ -112,6 +137,8 @@ impl Device {
                 humidity_sensor: None,
                 dc_motor: Some(DcMotor::new()),
                 stepper_motor: None,
+                name: device_info.name,
+                description: device_info.description,
             },
             DeviceType::StepperMotor => Device {
                 device_type,
@@ -120,11 +147,50 @@ impl Device {
                 humidity_sensor: None,
                 dc_motor: None,
                 stepper_motor: Some(StepperMotor::new()),
+                name: device_info.name,
+                description: device_info.description,
             },
         }
     }
 
     pub fn operate(&mut self, command: &str, parameter: &str) -> Option<String> {
+        match command {
+            "get_status" => {
+                println!("Getting status...");
+                return Some("Rust Simulation".to_string());
+            }
+            "get_version" => {
+                println!("Getting version...");
+                return Some("1.0.0".to_string());
+            }
+            "set_name" => {
+                println!("Setting name to {}", parameter);
+                self.name = parameter.to_string();
+                let data = fs::read_to_string("device_info.json").expect("Unable to read file");
+                let mut json: Value = serde_json::from_str(&data).expect("JSON was not well-formatted");
+                json["name"] = Value::String(parameter.to_string());
+                fs::write
+                    ("device_info.json",
+                    serde_json::to_string_pretty(&json)
+                        .unwrap()
+                    ).expect("Unable to write file");
+                return Some(parameter.to_string());
+            }
+            "set_description" => {
+                println!("Setting description to {}", parameter);
+                self.description = parameter.to_string();
+                let data = fs::read_to_string("device_info.json").expect("Unable to read file");
+                let mut json: Value = serde_json::from_str(&data).expect("JSON was not well-formatted");
+                json["description"] = Value::String(parameter.to_string());
+                fs::write
+                    ("device_info.json",
+                    serde_json::to_string_pretty(&json)
+                        .unwrap()
+                    ).expect("Unable to write file");
+                return Some(parameter.to_string());
+            }
+            _ => {}
+        }
         match self.device_type {
             DeviceType::TemperatureSensor => {
                 if let Some(device) = &mut self.temperature_sensor {
