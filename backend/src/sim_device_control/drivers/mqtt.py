@@ -4,6 +4,7 @@ import threading
 import time
 import paho.mqtt.client as mqtt
 
+
 class MqttDriver:
     def __init__(self, broker_address, port=1883):
         self.client = mqtt.Client()
@@ -81,12 +82,7 @@ class MqttDriver:
         self.client.publish(topic, json.dumps(message), qos=qos, retain=retain)
 
     def send_command_and_wait(
-        self,
-        cmd_topic,
-        reply_topic,
-        command,
-        parameter,
-        timeout=5
+        self, cmd_topic, reply_topic, command, parameter, timeout=5
     ):
         request_id = str(uuid.uuid4())
         event = threading.Event()

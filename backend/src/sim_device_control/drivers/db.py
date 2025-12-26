@@ -6,22 +6,35 @@ from ..schemas import Base, DatabaseDevice, DatabaseLogRecord, SimDevice
 
 # region Real DB
 
-engine = create_engine(
-    f"{settings.database_url}"
-    f"{settings.database_user}:"
-    f"{settings.database_password}@"
-    f"{settings.database_host}:"
-    f"{settings.database_port}/"
-    f"{settings.database_name}",
-    pool_pre_ping=True,
-    echo=True,
-)
+# Engine and SessionLocal are created lazily to avoid connecting during import
+engine = None
+SessionLocal = None
 
-Base.metadata.create_all(bind=engine)
 
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+def _create_engine():
+    return create_engine(
+        f"{settings.database_url}"
+        f"{settings.database_user}:"
+        f"{settings.database_password}@"
+        f"{settings.database_host}:"
+        f"{settings.database_port}/"
+        f"{settings.database_name}",
+        pool_pre_ping=True,
+        echo=True,
+    )
+
+
+def init_engine():
+    global engine, SessionLocal
+    if engine is None or SessionLocal is None:
+        engine = _create_engine()
+        Base.metadata.create_all(bind=engine)
+        SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+    return engine
+
 
 # region Device table operations
+
 
 def add_device(db: Session, device: SimDevice):
     db_device = DatabaseDevice(
@@ -30,21 +43,24 @@ def add_device(db: Session, device: SimDevice):
         name=device.name,
         status=device.status,
         description=device.description,
-        version=device.version
+        version=device.version,
     )
     db.add(db_device)
     db.commit()
     db.refresh(db_device)
     return db_device
 
+
 def get_devices(db: Session) -> List[DatabaseDevice]:
     return db.query(DatabaseDevice).all()
+
 
 def get_device_by_uuid(db: Session, uuid: str):
     device = db.query(DatabaseDevice).filter(DatabaseDevice.uuid == uuid).first()
     if not device:
         raise ValueError("Device not found")
     return device
+
 
 def update_device(db: Session, uuid: str, updated_device: SimDevice):
     db_device = get_device_by_uuid(db, uuid)
@@ -55,14 +71,17 @@ def update_device(db: Session, uuid: str, updated_device: SimDevice):
     db.refresh(db_device)
     return db_device
 
+
 def delete_device(db: Session, uuid: str):
     db_device = get_device_by_uuid(db, uuid)
     db.delete(db_device)
     db.commit()
 
+
 # endregion
 
 # region Log table operations
+
 
 def add_log(db: Session, log: DatabaseLogRecord):
     db_log = DatabaseLogRecord(
@@ -71,14 +90,16 @@ def add_log(db: Session, log: DatabaseLogRecord):
         device_uuid=log.device_uuid,
         action=log.action,
         description=log.description,
-        timestamp=log.timestamp
+        timestamp=log.timestamp,
     )
     db.add(db_log)
     db.commit()
     return db_log
 
+
 def get_logs(db: Session) -> List[DatabaseLogRecord]:
     return db.query(DatabaseLogRecord).all()
+
 
 # endregion
 
@@ -89,6 +110,7 @@ def get_logs(db: Session) -> List[DatabaseLogRecord]:
 
 devices_table: List[Any] = []
 logs_table: List[Any] = []
+
 
 class FakeDBSession:
     def __init__(self):
@@ -104,7 +126,7 @@ class FakeDBSession:
 
     def get_devices(self):
         return self.devices
-    
+
     def get_device_by_uuid(self, device_uuid: str):
         for device in self.devices:
             if device.uuid == device_uuid:
@@ -147,6 +169,7 @@ class FakeDBSession:
     def close(self):
         pass
 
+
 fake_db_session = FakeDBSession()
 
 # endregion
@@ -154,6 +177,9 @@ fake_db_session = FakeDBSession()
 
 def get_db():
     # db = fake_db_session
+    global SessionLocal
+    if SessionLocal is None:
+        init_engine()
     db = SessionLocal()
     try:
         yield db

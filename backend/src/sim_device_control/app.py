@@ -223,7 +223,7 @@ def get_device_status(
 ):
     try:
         add_record(db, logged_device_uuid=device_uuid, description="Getting status")
-        device_status = manager.get_status(device_uuid)
+        device_status = manager.get_status(device_uuid, db)
         add_record(
             db, logged_device_uuid=device_uuid, description=f"Status: {device_status}"
         )
@@ -243,7 +243,7 @@ def get_device_version(
 ):
     try:
         add_record(db, logged_device_uuid=device_uuid, description="Getting version")
-        device_version = manager.get_version(device_uuid)
+        device_version = manager.get_version(device_uuid, db)
         add_record(
             db, logged_device_uuid=device_uuid, description=f"Version: {device_version}"
         )
@@ -765,14 +765,14 @@ def list_logs_by_time(
 ):
     add_record(db, description=f"Listed log records from {start_time} to {end_time}")
     # matching_logs = [r for r in db.get_log() if start_time <= r.timestamp <= end_time]
-    matching_logs = [r for r in db_driver.get_logs(db) if start_time <= r.timestamp <= end_time]
+    matching_logs = [
+        r for r in db_driver.get_logs(db) if start_time <= r.timestamp <= end_time
+    ]
     return matching_logs
 
 
 @app.post("/logs/", response_model=LogRecord, tags=["Log Management"])
-def create_entry(
-    action: str, description: str, db=Depends(get_db)
-):
+def create_entry(action: str, description: str, db=Depends(get_db)):
     try:
         record = LogRecord(
             uuid=uuid.uuid4(),

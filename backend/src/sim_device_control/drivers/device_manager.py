@@ -1,3 +1,5 @@
+import os
+import sys
 import time
 import threading
 from typing import Any, Dict, List, Union, cast
@@ -19,49 +21,64 @@ DeviceDriverType = Union[BaseSensorDriver, BaseControllerDriver]
 
 
 class DeviceManager:
-    def __init__(self):
-        self.mqtt_session = MqttDriver("broker.hivemq.com")
-        self.mqtt_session.connect()
-        self.mqtt_session.start()
+    def __init__(self, enable_mqtt: bool | None = None):
+        # Default to disabling MQTT when tests are running or an opt-out flag is set
+        if enable_mqtt is None:
+            enable_mqtt = not (
+                os.getenv("SIM_DEVICE_CONTROL_DISABLE_MQTT")
+                or os.getenv("PYTEST_CURRENT_TEST")
+            )
+        self.enable_mqtt = enable_mqtt
 
+        self.mqtt_session = None
+        monitor_connections = None
         self._stop_event = threading.Event()
         self._drivers_lock = threading.Lock()
 
-        def monitor_connections(mqtt_session, add_device, remove_device):
-            known = {}
+        if self.enable_mqtt:
+            self.mqtt_session = MqttDriver("broker.hivemq.com")
+            self.mqtt_session.connect()
+            self.mqtt_session.start()
 
-            while not self._stop_event.wait(1):
-                with mqtt_session._device_lock:
-                    current = dict(mqtt_session.devices)
+            def monitor_connections(mqtt_session, add_device, remove_device):
+                known = {}
 
-                # Device connected
-                for device_id, device_info in current.items():
-                    if device_id not in known:
-                        print(f"[CONNECTED] {device_id} ({device_info['type']})")
-                        try:
-                            add_device(SimDevice(
-                                uuid=device_id,
-                                type=DeviceType(device_info["type"]),
-                                name=device_info["name"],
-                                description=device_info["description"],
-                                status=device_info["status"],
-                                version=device_info["version"]
-                            ))
-                            print(f"Added device {device_id} of type {device_info['type']}")
-                        except Exception as e:
-                            print(f"Failed to add device {device_id}: {e}")
+                while not self._stop_event.wait(1):
+                    with mqtt_session._device_lock:
+                        current = dict(mqtt_session.devices)
 
-                # Device disconnected
-                for device_id in list(known):
-                    if device_id not in current:
-                        print(f"[DISCONNECTED] {device_id}")
-                        try:
-                            remove_device(device_id)
-                            print(f"Removed device {device_id}")
-                        except Exception as e:
-                            print(f"Failed to remove device {device_id}: {e}")
+                    # Device connected
+                    for device_id, device_info in current.items():
+                        if device_id not in known:
+                            print(f"[CONNECTED] {device_id} ({device_info['type']})")
+                            try:
+                                add_device(
+                                    SimDevice(
+                                        uuid=device_id,
+                                        type=DeviceType(device_info["type"]),
+                                        name=device_info["name"],
+                                        description=device_info["description"],
+                                        status=device_info["status"],
+                                        version=device_info["version"],
+                                    )
+                                )
+                                print(
+                                    f"Added device {device_id} of type {device_info['type']}"
+                                )
+                            except Exception as e:
+                                print(f"Failed to add device {device_id}: {e}")
 
-                known = current
+                    # Device disconnected
+                    for device_id in list(known):
+                        if device_id not in current:
+                            print(f"[DISCONNECTED] {device_id}")
+                            try:
+                                remove_device(device_id)
+                                print(f"Removed device {device_id}")
+                            except Exception as e:
+                                print(f"Failed to remove device {device_id}: {e}")
+
+                    known = current
 
         self.drivers: List[DeviceDriverType] = []
         db_gen = get_db()
@@ -80,12 +97,13 @@ class DeviceManager:
                     db_driver.delete_device(self.db, device.uuid)
         finally:
             db_gen.close()
-            monitor_thread = threading.Thread(
-                target=monitor_connections,
-                args=(self.mqtt_session, self.add_device, self.remove_device),
-                daemon=True
-            )
-            monitor_thread.start()
+            if self.enable_mqtt and monitor_connections is not None:
+                monitor_thread = threading.Thread(
+                    target=monitor_connections,
+                    args=(self.mqtt_session, self.add_device, self.remove_device),
+                    daemon=True,
+                )
+                monitor_thread.start()
 
     def stop(self):
         self._stop_event.set()
@@ -132,24 +150,22 @@ class DeviceManager:
 
     # region all device types operations
 
-    def get_status(self, uuid: str):
+    def get_status(self, uuid: str, db=None):
+        active_db = db or self.db
         device = self._get_device(uuid)
         status = device._get_status()
-        # db_device = db.get_device_by_uuid(uuid)
-        db_device = db_driver.get_device_by_uuid(self.db, uuid)
+        db_device = db_driver.get_device_by_uuid(active_db, uuid)
         db_device.status = status
-        # db.update_device(uuid, updated_db_device)
-        db_driver.update_device(self.db, uuid, db_device)
+        db_driver.update_device(active_db, uuid, db_device)
         return status
 
-    def get_version(self, uuid: str):
+    def get_version(self, uuid: str, db=None):
+        active_db = db or self.db
         device = self._get_device(uuid)
         version = device._get_version()
-        # db_device = db.get_device_by_uuid(uuid)
-        db_device = db_driver.get_device_by_uuid(self.db, uuid)
+        db_device = db_driver.get_device_by_uuid(active_db, uuid)
         db_device.version = version
-        # db.update_device(uuid, updated_db_device)
-        db_driver.update_device(self.db, uuid, db_device)
+        db_driver.update_device(active_db, uuid, db_device)
         return version
 
     # endregion
@@ -242,8 +258,27 @@ class DeviceManager:
 # endregion
 
 # Provide a device manager session for FastAPI dependencies
-device_manager = DeviceManager()
+_device_manager = None
 
 
 def get_device_manager():
-    return device_manager
+    global _device_manager
+    if _device_manager is None:
+        _device_manager = DeviceManager()
+    return _device_manager
+
+
+# Auto-start the manager (and MQTT listener) when not explicitly disabled.
+# Keeps tests safe while restoring runtime behavior for incoming MQTT payloads.
+if not (
+    os.getenv("SIM_DEVICE_CONTROL_DISABLE_MANAGER")
+    or os.getenv("PYTEST_CURRENT_TEST")
+    or "pytest" in sys.modules
+):
+    _device_manager = DeviceManager()
+
+
+def __getattr__(name):
+    if name == "device_manager":
+        return get_device_manager()
+    raise AttributeError(name)
