@@ -33,7 +33,7 @@ export default function DeviceList() {
     return (
         <div>
 
-            <h2>Create Device</h2>
+            {/* <h2>Create Device</h2>
 
             <div style={{
                 textAlign: "left",
@@ -91,9 +91,9 @@ export default function DeviceList() {
                     onChange={(e) => setNewDevice({ ...newDevice, status: e.target.value })}
                     disabled={loading !== LoadingSection.None}
                 />
-            </div>
+            </div> */}
             
-            <div
+            {/* <div
                 style={{
                     display: "flex",
                     justifyContent: "center",
@@ -112,7 +112,7 @@ export default function DeviceList() {
                     style={{ width: "40px", display: "flex", alignItems: "center", justifyContent: "center" }}>
                     {loading === LoadingSection.UsingDevice ? spinnerChar : "+"}
                 </button>
-            </div>
+            </div> */}
 
             <h2>Device List</h2>
 
@@ -215,7 +215,7 @@ export default function DeviceList() {
                 {loading === LoadingSection.FetchingDevices ? spinnerChar : "⟳"}
             </button>
 
-            <button onClick={async () => {
+            {/* <button onClick={async () => {
                 await deleteDevice(selectedDevice!.uuid, setLoading, setError);
                 fetchDevices(DeviceType.All, setLoading, setError, setDevices);
                 setSelectedDevice(null);
@@ -224,7 +224,7 @@ export default function DeviceList() {
             }} disabled={loading === LoadingSection.UsingDevice || !selectedDevice}
             style={{ width: "40px", display: "flex", alignItems: "center", justifyContent: "center" }}>
                 {loading === LoadingSection.UsingDevice ? spinnerChar : "—"}
-            </button>
+            </button> */}
 
             </div>
             <div style={{
