@@ -57,17 +57,28 @@ impl StepperMotor {
             "get_direction" => {
                 println!("Reading direction...");
                 println!("direction: {}", if self.direction { "forward" } else { "backward" });
-                return Some(self.direction.to_string());
+                if self.direction {
+                    return Some("forward".to_string());
+                } else {
+                    return Some("backward".to_string());
+                }
             }
             "set_direction" => {
                 println!("Setting direction to {} %...", parameter);
-                if let Ok(set_direction) = parameter.parse::<bool>() {
-                    self.direction = set_direction;
-                    println!("Direction set to {}", if self.direction { "forward" } else { "backward" });
-                    return Some(self.direction.to_string());
+                let set_direction = parameter.parse::<String>().unwrap_or_default();
+                if set_direction.to_lowercase() == "forward" {
+                    self.direction = true;
+                } else if set_direction.to_lowercase() == "backward" {
+                    self.direction = false;
                 } else {
-                    println!("Invalid direction parameter: {}", parameter);
+                    println!("Invalid direction value: {}", parameter);
                     return None;
+                }
+                println!("Direction set to {}", if self.direction { "forward" } else { "backward" });
+                if self.direction {
+                    return Some("forward".to_string());
+                } else {
+                    return Some("backward".to_string());
                 }
             }
             "get_location" => {

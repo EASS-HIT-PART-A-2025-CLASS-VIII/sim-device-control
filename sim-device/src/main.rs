@@ -8,7 +8,7 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use serde::Deserialize;
 
 use crate::drivers::mqtt::{connect, read_payload};
-use crate::drivers::device::{self, Device, DevicePayload, DeviceType};
+use crate::drivers::device::{Device, DevicePayload, DeviceType};
 
 #[derive(Debug, Deserialize)]
 struct MqttCommand {
