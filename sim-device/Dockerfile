@@ -20,4 +20,6 @@ COPY --from=builder /app/target/release/sim-device .
 
 COPY .env* ./
 
+COPY device_info.json ./
+
 CMD ["./sim-device"]
