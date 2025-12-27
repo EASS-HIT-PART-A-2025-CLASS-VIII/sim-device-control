@@ -1,6 +1,10 @@
 import sys
 import os
 
+# Disable MQTT before importing any sim_device_control modules
+os.environ["SIM_DEVICE_CONTROL_DISABLE_MQTT"] = "1"
+os.environ["SIM_DEVICE_CONTROL_DISABLE_MANAGER"] = "1"
+
 import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.pool import StaticPool
@@ -64,15 +68,27 @@ def clear_db(db_session):
 
 @pytest.fixture
 def app_with_test_db(db_session):
+    from sim_device_control.drivers.device_manager import DeviceManager
+
     def override_get_db():
         try:
             yield db_session
         finally:
             pass
 
+    # Create a test device manager with MQTT disabled
+    test_device_manager = DeviceManager(enable_mqtt=False)
+
+    def override_get_device_manager():
+        return test_device_manager
+
     fastapi_app.dependency_overrides[db_driver.get_db] = override_get_db
     fastapi_app.dependency_overrides[app_module.get_db] = override_get_db
+    fastapi_app.dependency_overrides[app_module.get_device_manager] = (
+        override_get_device_manager
+    )
     try:
         yield fastapi_app
     finally:
         fastapi_app.dependency_overrides.clear()
+        test_device_manager.stop()

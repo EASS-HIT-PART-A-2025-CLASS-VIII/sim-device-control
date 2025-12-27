@@ -1,4 +1,5 @@
 import pytest
+from unittest.mock import MagicMock
 from fastapi.testclient import TestClient
 from sim_device_control import schemas
 from sim_device_control.app import app
@@ -13,24 +14,139 @@ def client(app_with_test_db):
 
 
 @pytest.fixture(autouse=True)
-def clear_drivers():
-    device_manager.device_manager.drivers.clear()
-    yield
-    device_manager.device_manager.drivers.clear()
+def patch_all_mqtt_methods(monkeypatch):
+    from sim_device_control.drivers import (
+        temperature,
+        pressure,
+        humidity,
+        dc_motor,
+        stepper_motor,
+    )
 
+    # Create stateful stores for motor properties
+    motor_state = {
+        "dc_speed": {},
+        "dc_direction": {},
+        "stepper_speed": {},
+        "stepper_direction": {},
+        "stepper_acceleration": {},
+        "stepper_location": {},
+    }
 
-@pytest.fixture(autouse=True)
-def patch_manager_updates(monkeypatch):
-    def _get_status(self, uuid: str, db):
-        device = self._get_device(uuid)
-        return device._get_status()
+    # Mock sensor read methods
+    monkeypatch.setattr(
+        temperature.TemperatureSensorDriver, "read_temperature", lambda self, mqtt: 20.0
+    )
+    monkeypatch.setattr(
+        pressure.PressureSensorDriver, "read_pressure", lambda self, mqtt: 1013.25
+    )
+    monkeypatch.setattr(
+        humidity.HumiditySensorDriver, "read_humidity", lambda self, mqtt: 50.0
+    )
 
-    def _get_version(self, uuid: str, db):
-        device = self._get_device(uuid)
-        return device._get_version()
+    # DC Motor mocks with state
+    def dc_get_speed(self, mqtt):
+        return motor_state["dc_speed"].get(self.uuid, 0.0)
 
-    monkeypatch.setattr(dm_mod.DeviceManager, "get_status", _get_status)
-    monkeypatch.setattr(dm_mod.DeviceManager, "get_version", _get_version)
+    def dc_set_speed(self, speed, mqtt):
+        motor_state["dc_speed"][self.uuid] = speed
+
+    def dc_get_direction(self, mqtt):
+        return motor_state["dc_direction"].get(
+            self.uuid, schemas.MotorDirection.FORWARD
+        )
+
+    def dc_set_direction(self, direction, mqtt):
+        motor_state["dc_direction"][self.uuid] = direction
+
+    monkeypatch.setattr(dc_motor.DcMotorDriver, "get_speed", dc_get_speed)
+    monkeypatch.setattr(dc_motor.DcMotorDriver, "set_speed", dc_set_speed)
+    monkeypatch.setattr(dc_motor.DcMotorDriver, "get_direction", dc_get_direction)
+    monkeypatch.setattr(dc_motor.DcMotorDriver, "set_direction", dc_set_direction)
+
+    # Stepper Motor mocks with state
+    def stepper_get_speed(self, mqtt):
+        return motor_state["stepper_speed"].get(self.uuid, 0.0)
+
+    def stepper_set_speed(self, speed, mqtt):
+        motor_state["stepper_speed"][self.uuid] = speed
+
+    def stepper_get_direction(self, mqtt):
+        return motor_state["stepper_direction"].get(
+            self.uuid, schemas.MotorDirection.FORWARD
+        )
+
+    def stepper_set_direction(self, direction, mqtt):
+        motor_state["stepper_direction"][self.uuid] = direction
+
+    def stepper_get_acceleration(self, mqtt):
+        return motor_state["stepper_acceleration"].get(self.uuid, 0.0)
+
+    def stepper_set_acceleration(self, accel, mqtt):
+        motor_state["stepper_acceleration"][self.uuid] = accel
+
+    def stepper_get_location(self, mqtt):
+        return motor_state["stepper_location"].get(self.uuid, 0)
+
+    def stepper_move_absolute(self, loc, mqtt):
+        motor_state["stepper_location"][self.uuid] = loc
+
+    def stepper_move_relative(self, loc, mqtt):
+        current = motor_state["stepper_location"].get(self.uuid, 0)
+        motor_state["stepper_location"][self.uuid] = current + loc
+
+    monkeypatch.setattr(
+        stepper_motor.StepperMotorDriver, "get_speed", stepper_get_speed
+    )
+    monkeypatch.setattr(
+        stepper_motor.StepperMotorDriver, "set_speed", stepper_set_speed
+    )
+    monkeypatch.setattr(
+        stepper_motor.StepperMotorDriver, "get_direction", stepper_get_direction
+    )
+    monkeypatch.setattr(
+        stepper_motor.StepperMotorDriver, "set_direction", stepper_set_direction
+    )
+    monkeypatch.setattr(
+        stepper_motor.StepperMotorDriver, "get_acceleration", stepper_get_acceleration
+    )
+    monkeypatch.setattr(
+        stepper_motor.StepperMotorDriver, "set_acceleration", stepper_set_acceleration
+    )
+    monkeypatch.setattr(
+        stepper_motor.StepperMotorDriver, "get_location", stepper_get_location
+    )
+    monkeypatch.setattr(
+        stepper_motor.StepperMotorDriver, "move_absolute", stepper_move_absolute
+    )
+    monkeypatch.setattr(
+        stepper_motor.StepperMotorDriver, "move_relative", stepper_move_relative
+    )
+
+    # Mock base class methods that call MQTT
+    from sim_device_control.drivers.base.base_controller import BaseControllerDriver
+    from sim_device_control.drivers.base.base_sensor import BaseSensorDriver
+
+    monkeypatch.setattr(BaseSensorDriver, "_get_status", lambda self, mqtt: "online")
+    monkeypatch.setattr(BaseSensorDriver, "_get_version", lambda self, mqtt: "1.0.0")
+    monkeypatch.setattr(BaseSensorDriver, "_update_name", lambda self, name, mqtt: None)
+    monkeypatch.setattr(
+        BaseSensorDriver, "_update_description", lambda self, desc, mqtt: None
+    )
+
+    monkeypatch.setattr(
+        BaseControllerDriver, "_get_status", lambda self, mqtt: "online"
+    )
+    monkeypatch.setattr(
+        BaseControllerDriver, "_get_version", lambda self, mqtt: "1.0.0"
+    )
+    monkeypatch.setattr(
+        BaseControllerDriver, "_update_name", lambda self, name, mqtt: None
+    )
+    monkeypatch.setattr(
+        BaseControllerDriver, "_update_description", lambda self, desc, mqtt: None
+    )
+
     yield
 
 

@@ -75,7 +75,7 @@ class TemperatureSensorDriver(BaseSensorDriver):
 
     def _update_name(self, new_name: str, mqtt_session=None):
         if not mqtt_session:
-            pass
+            return new_name
         json_response = mqtt_session.send_command_and_wait(
             cmd_topic=f"sim-device-control/{self.uuid}/command",
             reply_topic=f"sim-device-control/{self.uuid}/response",
@@ -87,7 +87,7 @@ class TemperatureSensorDriver(BaseSensorDriver):
 
     def _update_description(self, new_description: str, mqtt_session=None):
         if not mqtt_session:
-            pass
+            return new_description
         json_response = mqtt_session.send_command_and_wait(
             cmd_topic=f"sim-device-control/{self.uuid}/command",
             reply_topic=f"sim-device-control/{self.uuid}/response",

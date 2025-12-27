@@ -15,6 +15,8 @@ class Settings(BaseSettings):
     database_host: str = "db"
     database_port: int = 3306
     database_name: str = "sim_device_control"
+    mqtt_broker: str = "mqtt-broker"
+    mqtt_port: int = 1883
 
 
 settings = Settings()

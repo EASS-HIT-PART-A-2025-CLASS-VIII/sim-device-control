@@ -8,6 +8,7 @@ from .db import get_db
 from .mqtt import MqttDriver
 from . import db as db_driver
 from ..schemas import DeviceType, MotorDirection, SimDevice
+from ..config import settings
 from .base.base_controller import BaseControllerDriver
 from .base.base_sensor import BaseSensorDriver
 from .temperature import TemperatureSensorDriver
@@ -36,7 +37,7 @@ class DeviceManager:
         self._drivers_lock = threading.Lock()
 
         if self.enable_mqtt:
-            self.mqtt_session = MqttDriver("broker.hivemq.com")
+            self.mqtt_session = MqttDriver(settings.mqtt_broker, settings.mqtt_port)
             self.mqtt_session.connect()
             self.mqtt_session.start()
 
@@ -89,12 +90,15 @@ class DeviceManager:
                 try:
                     self.add_device(device, use_db=False)
                     device_driver = self._get_device(device.uuid)
-                    status = device_driver._get_status()
+                    status = device_driver._get_status(self.mqtt_session)
                     device.status = status
                     db_driver.update_device(self.db, device.uuid, device)
-                except ValueError:
+                except TimeoutError:
                     self.remove_device(device.uuid)
                     db_driver.delete_device(self.db, device.uuid)
+                    continue
+                except Exception as e:
+                    print(f"Error adding device {device.uuid}: {e}")
         finally:
             # db_gen.close()
             if self.enable_mqtt and monitor_connections is not None:
@@ -201,7 +205,7 @@ class DeviceManager:
 
     def read_pressure(self, uuid: str):
         device = cast(PressureSensorDriver, self._get_device(uuid))
-        return device.read_pressure()
+        return device.read_pressure(self.mqtt_session)
 
     # endregion
 
@@ -209,7 +213,7 @@ class DeviceManager:
 
     def read_humidity(self, uuid: str):
         device = cast(HumiditySensorDriver, self._get_device(uuid))
-        return device.read_humidity()
+        return device.read_humidity(self.mqtt_session)
 
     # endregion
 
@@ -217,19 +221,19 @@ class DeviceManager:
 
     def get_dc_motor_speed(self, uuid: str):
         device = cast(DcMotorDriver, self._get_device(uuid))
-        return device.get_speed()
+        return device.get_speed(self.mqtt_session)
 
     def get_dc_motor_direction(self, uuid: str):
         device = cast(DcMotorDriver, self._get_device(uuid))
-        return device.get_direction()
+        return device.get_direction(self.mqtt_session)
 
     def set_dc_motor_speed(self, uuid: str, speed: float):
         device = cast(DcMotorDriver, self._get_device(uuid))
-        device.set_speed(speed)
+        device.set_speed(speed, self.mqtt_session)
 
     def set_dc_motor_direction(self, uuid: str, direction: MotorDirection):
         device = cast(DcMotorDriver, self._get_device(uuid))
-        device.set_direction(direction)
+        device.set_direction(direction, self.mqtt_session)
 
     # endregion
 
@@ -237,39 +241,39 @@ class DeviceManager:
 
     def get_stepper_motor_speed(self, uuid: str):
         device = cast(StepperMotorDriver, self._get_device(uuid))
-        return device.get_speed()
+        return device.get_speed(self.mqtt_session)
 
     def get_stepper_motor_direction(self, uuid: str):
         device = cast(StepperMotorDriver, self._get_device(uuid))
-        return device.get_direction()
+        return device.get_direction(self.mqtt_session)
 
     def get_stepper_motor_acceleration(self, uuid: str):
         device = cast(StepperMotorDriver, self._get_device(uuid))
-        return device.get_acceleration()
+        return device.get_acceleration(self.mqtt_session)
 
     def get_stepper_motor_location(self, uuid: str):
         device = cast(StepperMotorDriver, self._get_device(uuid))
-        return device.get_location()
+        return device.get_location(self.mqtt_session)
 
     def set_stepper_motor_speed(self, uuid: str, speed: float):
         device = cast(StepperMotorDriver, self._get_device(uuid))
-        device.set_speed(speed)
+        device.set_speed(speed, self.mqtt_session)
 
     def set_stepper_motor_direction(self, uuid: str, direction: MotorDirection):
         device = cast(StepperMotorDriver, self._get_device(uuid))
-        device.set_direction(direction)
+        device.set_direction(direction, self.mqtt_session)
 
     def set_stepper_motor_acceleration(self, uuid: str, acceleration: float):
         device = cast(StepperMotorDriver, self._get_device(uuid))
-        device.set_acceleration(acceleration)
+        device.set_acceleration(acceleration, self.mqtt_session)
 
     def set_stepper_motor_absolute_location(self, uuid: str, location: int):
         device = cast(StepperMotorDriver, self._get_device(uuid))
-        device.move_absolute(location)
+        device.move_absolute(location, self.mqtt_session)
 
     def set_stepper_motor_relative_location(self, uuid: str, location: int):
         device = cast(StepperMotorDriver, self._get_device(uuid))
-        device.move_relative(location)
+        device.move_relative(location, self.mqtt_session)
 
 
 # endregion
