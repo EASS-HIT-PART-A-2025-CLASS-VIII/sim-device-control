@@ -59,11 +59,18 @@ Configure environment variables:
 cp .env.example .env
 ```
 
-Edit `.env` and set your Database user and password:
+Edit `.env`.
+set your Database user and password:
 
 ```
 DATABASE_USER="example_user"
 DATABASE_PASSWORD="example_password"
+```
+set your MQTT broker and port:
+
+```
+MQTT_BROKER="example_broker"
+MQTT_PORT=1883
 ```
 
 Run the API locally with uvicorn (module entrypoint):

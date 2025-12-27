@@ -55,10 +55,9 @@ In order to run the project as a whole run the docker-compose.yml file:
 ```bash
 docker compose up --build
 ```
+After running the docker compose file, in order to add/remove devices you must run the sim-device, visit sim-device/README.md to learn how to connect and disconnect devices
 
 If you need to run a specific component of the project, visit its directory and follow its README.md file
 
 ## TODO
-- Implement MQTT protocol in the backend
-- Dockerize the rust project
 - Create a dockerized MQTT broker

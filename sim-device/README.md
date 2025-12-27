@@ -34,7 +34,7 @@ sim-device/
 
 The app reads environment variables (via `.env` if present):
 
-Configure environment variables:
+Configure environment variables (make sure the MQTT variables match with the backend's variables or else you won't be able to connect):
 
 ```bash
 cp .env.example .env
@@ -79,6 +79,7 @@ Alternatively, you can run the `run-docker.sh` bash script:
 ```bash
 ./run-docker.sh
 ```
+To stop the container gracefully, press ctrl+c or close the container via Docker Desktop.
 
 Notes:
 - The container is configured with `STOPSIGNAL SIGTERM`. `docker stop` sends SIGTERM, which the app handles gracefully.
