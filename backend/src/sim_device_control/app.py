@@ -137,20 +137,26 @@ def get_devices_by_type(device_type: DeviceType, db=Depends(get_db)):
     tags=["General Device Control"],
 )
 def update_device_description(
-    device_uuid: str, new_description: str, db=Depends(get_db)
+    device_uuid: str,
+    new_description: str,
+    db=Depends(get_db),
+    manager=Depends(get_device_manager),
 ):
     try:
         add_record(db, description=f"Attempting to update device {device_uuid}")
         # devices = db.get_devices()
-        devices = db_driver.get_devices(db)
-        for device in devices:
-            if device.uuid == device_uuid:
-                device.description = new_description
-                # db.update_device(device_uuid, device)
-                db_driver.update_device(db, device_uuid, device)
-                add_record(db, description=f"Successfully updated device {device_uuid}")
-                return device
-        raise ValueError("Device not found")
+        # devices = db_driver.get_devices(db)
+        # for device in devices:
+        #     if device.uuid == device_uuid:
+        #         device.description = new_description
+        #         # db.update_device(device_uuid, device)
+        #         db_driver.update_device(db, device_uuid, device)
+        #         add_record(db, description=f"Successfully updated device {device_uuid}")
+        #         return device
+        # raise ValueError("Device not found")
+        manager.update_description(device_uuid, new_description, db)
+        device = db_driver.get_device_by_uuid(db, device_uuid)
+        return device
     except ValueError as e:
         add_record(db, description=f"Failed to update device {device_uuid}: {str(e)}")
         raise HTTPException(status_code=404, detail=str(e))
@@ -161,19 +167,27 @@ def update_device_description(
     response_model=SimDevice,
     tags=["General Device Control"],
 )
-def update_device_name(device_uuid: str, new_name: str, db=Depends(get_db)):
+def update_device_name(
+    device_uuid: str,
+    new_name: str,
+    db=Depends(get_db),
+    manager=Depends(get_device_manager),
+):
     try:
         add_record(db, description=f"Attempting to update device {device_uuid}")
         # devices = db.get_devices()
-        devices = db_driver.get_devices(db)
-        for device in devices:
-            if device.uuid == device_uuid:
-                device.name = new_name
-                # db.update_device(device_uuid, device)
-                db_driver.update_device(db, device_uuid, device)
-                add_record(db, description=f"Successfully updated device {device_uuid}")
-                return device
-        raise ValueError("Device not found")
+        # devices = db_driver.get_devices(db)
+        # for device in devices:
+        #     if device.uuid == device_uuid:
+        #         device.name = new_name
+        #         # db.update_device(device_uuid, device)
+        #         db_driver.update_device(db, device_uuid, device)
+        #         add_record(db, description=f"Successfully updated device {device_uuid}")
+        #         return device
+        # raise ValueError("Device not found")
+        manager.update_name(device_uuid, new_name, db)
+        device = db_driver.get_device_by_uuid(db, device_uuid)
+        return device
     except ValueError as e:
         add_record(db, description=f"Failed to update device {device_uuid}: {str(e)}")
         raise HTTPException(status_code=404, detail=str(e))

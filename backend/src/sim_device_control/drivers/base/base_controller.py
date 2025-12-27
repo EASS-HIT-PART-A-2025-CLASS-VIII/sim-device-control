@@ -13,3 +13,19 @@ class BaseControllerDriver(ABC):
     @abstractmethod
     def _get_version(self):
         raise NotImplementedError("Subclasses must implement this method")
+
+    @abstractmethod
+    def _get_name(self):
+        raise NotImplementedError("Subclasses must implement this method")
+
+    @abstractmethod
+    def _get_description(self):
+        raise NotImplementedError("Subclasses must implement this method")
+
+    @abstractmethod
+    def _update_name(self):
+        raise NotImplementedError("Subclasses must implement this method")
+
+    @abstractmethod
+    def _update_description(self):
+        raise NotImplementedError("Subclasses must implement this method")

@@ -87,7 +87,7 @@ class DeviceManager:
             devices_to_ping: List[SimDevice] = db_driver.get_devices(self.db)
             for device in devices_to_ping:
                 try:
-                    self.add_device(device)
+                    self.add_device(device, use_db=False)
                     device_driver = self._get_device(device.uuid)
                     status = device_driver._get_status()
                     device.status = status
@@ -96,7 +96,7 @@ class DeviceManager:
                     self.remove_device(device.uuid)
                     db_driver.delete_device(self.db, device.uuid)
         finally:
-            db_gen.close()
+            # db_gen.close()
             if self.enable_mqtt and monitor_connections is not None:
                 monitor_thread = threading.Thread(
                     target=monitor_connections,
@@ -118,7 +118,7 @@ class DeviceManager:
         DeviceType.STEPPER_MOTOR: StepperMotorDriver,
     }
 
-    def add_device(self, device: SimDevice):
+    def add_device(self, device: SimDevice, use_db: bool = True):
         with self._drivers_lock:
             if device.uuid in [d.uuid for d in self.drivers]:
                 raise ValueError(f"Device {device.uuid} already exists")
@@ -127,7 +127,8 @@ class DeviceManager:
             except KeyError:
                 raise ValueError(f"Unsupported device type: {device.type}")
             self.drivers.append(driver_class(device.uuid))
-            db_driver.add_device(self.db, device)
+            if use_db:
+                db_driver.add_device(self.db, device)
 
     def remove_device(self, uuid: str):
         with self._drivers_lock:
@@ -153,7 +154,7 @@ class DeviceManager:
     def get_status(self, uuid: str, db=None):
         active_db = db or self.db
         device = self._get_device(uuid)
-        status = device._get_status()
+        status = device._get_status(self.mqtt_session)
         db_device = db_driver.get_device_by_uuid(active_db, uuid)
         db_device.status = status
         db_driver.update_device(active_db, uuid, db_device)
@@ -162,11 +163,29 @@ class DeviceManager:
     def get_version(self, uuid: str, db=None):
         active_db = db or self.db
         device = self._get_device(uuid)
-        version = device._get_version()
+        version = device._get_version(self.mqtt_session)
         db_device = db_driver.get_device_by_uuid(active_db, uuid)
         db_device.version = version
         db_driver.update_device(active_db, uuid, db_device)
         return version
+
+    def update_name(self, uuid: str, new_name: str, db=None):
+        active_db = db or self.db
+        device = self._get_device(uuid)
+        device._update_name(new_name, self.mqtt_session)
+        db_device = db_driver.get_device_by_uuid(active_db, uuid)
+        db_device.name = new_name
+        db_driver.update_device(active_db, uuid, db_device)
+        return new_name
+
+    def update_description(self, uuid: str, new_description: str, db=None):
+        active_db = db or self.db
+        device = self._get_device(uuid)
+        device._update_description(new_description, self.mqtt_session)
+        db_device = db_driver.get_device_by_uuid(active_db, uuid)
+        db_device.description = new_description
+        db_driver.update_device(active_db, uuid, db_device)
+        return new_description
 
     # endregion
 
@@ -174,7 +193,7 @@ class DeviceManager:
 
     def read_temperature(self, uuid: str):
         device = cast(TemperatureSensorDriver, self._get_device(uuid))
-        return device.read_temperature()
+        return device.read_temperature(self.mqtt_session)
 
     # endregion
 
