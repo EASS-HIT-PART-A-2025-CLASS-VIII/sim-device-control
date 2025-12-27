@@ -1,6 +1,7 @@
 # sim-device-control
 
-A small demo project that exposes a FastAPI service for controlling simulated devices and collecting logs.
+A proof-of-concept project for controlling simulated IoT devices through MQTT,
+featuring a Python FastAPI backend, React UI and Rust device simulator.
 
 **Project Internals**
 
