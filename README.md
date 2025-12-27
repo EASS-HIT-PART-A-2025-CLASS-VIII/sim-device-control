@@ -6,8 +6,8 @@ featuring a Python FastAPI backend, React UI and Rust device simulator.
 **Project Internals**
 
 As of now the project contains:
-- Python fastapi backend
-- Typescript React as a UI framework and Vite as a building tool and development server
+- Python FastAPI backend
+- TypeScript React as a UI framework and Vite as a building tool and development server
 - MySQL Database that saves logs and devices
 - Rust based device simulation via MQTT
 
@@ -15,20 +15,20 @@ Project folders layout:
 
 ```
 .
-├── backend
+├── backend (Python - FastAPI)
 │   ├── scripts
 │   ├── src
 │   │   ├── sim_device_control
 │   │   │   └── drivers
 │   │   │       └── base
 │   └── tests
-├── frontend
+├── frontend (TypeScript - react, vite)
 │   └── src
 │       ├── assets
 │       ├── components
 │       ├── panels
 │       └── utils
-└── sim-device
+└── sim-device (Rust)
     ├── src
     │   └── drivers
 

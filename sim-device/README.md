@@ -17,6 +17,7 @@ sim-device/
 │       ├── dc_motor.rs
 │       ├── device.rs
 │       ├── humidity_sensor.rs
+│       ├── mod.rs
 │       ├── mqtt.rs
 │       ├── pressure_sensor.rs
 │       ├── stepper_motor.rs

@@ -25,11 +25,13 @@ backend/
 │       │   ├── dc_motor.py
 │       │   ├── device_manager.py
 │       │   ├── humidity.py
+│       │   ├── mqtt.py
 │       │   ├── pressure.py
 │       │   ├── stepper_motor.py
 │       │   └── temperature.py
 │       ├── __init__.py
 │       ├── __main__.py
+│       ├── config.py
 │       └── schemas.py
 ├── tests
 │   ├── conftest.py
