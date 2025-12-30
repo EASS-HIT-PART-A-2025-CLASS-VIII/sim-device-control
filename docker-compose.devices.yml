@@ -1,0 +1,76 @@
+version: "3.9"
+
+services:
+  sim-device-temperature:
+    build: ./sim-device
+    container_name: sim-device-temperature
+    restart: unless-stopped
+    environment:
+      DEVICE_TYPE: temperature_sensor
+      DEVICE_ID: temp-1
+      MQTT_BROKER: host.docker.internal
+      MQTT_PORT: 1883
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - sim-device-devices-net
+
+  sim-device-pressure:
+    build: ./sim-device
+    container_name: sim-device-pressure
+    restart: unless-stopped
+    environment:
+      DEVICE_TYPE: pressure_sensor
+      DEVICE_ID: pressure-1
+      MQTT_BROKER: host.docker.internal
+      MQTT_PORT: 1883
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - sim-device-devices-net
+
+  sim-device-humidity:
+    build: ./sim-device
+    container_name: sim-device-humidity
+    restart: unless-stopped
+    environment:
+      DEVICE_TYPE: humidity_sensor
+      DEVICE_ID: humidity-1
+      MQTT_BROKER: host.docker.internal
+      MQTT_PORT: 1883
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - sim-device-devices-net
+
+  sim-device-dc-motor:
+    build: ./sim-device
+    container_name: sim-device-dc-motor
+    restart: unless-stopped
+    environment:
+      DEVICE_TYPE: dc_motor
+      DEVICE_ID: dc-motor-1
+      MQTT_BROKER: host.docker.internal
+      MQTT_PORT: 1883
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - sim-device-devices-net
+
+  sim-device-stepper-motor:
+    build: ./sim-device
+    container_name: sim-device-stepper-motor
+    restart: unless-stopped
+    environment:
+      DEVICE_TYPE: stepper_motor
+      DEVICE_ID: stepper-1
+      MQTT_BROKER: host.docker.internal
+      MQTT_PORT: 1883
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - sim-device-devices-net
+      
+networks:
+  sim-device-devices-net:
+    driver: bridge
