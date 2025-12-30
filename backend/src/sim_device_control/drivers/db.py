@@ -1,5 +1,6 @@
 from typing import List, Any
-from sqlalchemy import create_engine
+from datetime import datetime
+from sqlalchemy import create_engine, desc
 from sqlalchemy.orm import sessionmaker, Session
 from ..config import settings
 from ..schemas import Base, DatabaseDevice, DatabaseLogRecord, SimDevice
@@ -98,7 +99,21 @@ def add_log(db: Session, log: DatabaseLogRecord):
 
 
 def get_logs(db: Session) -> List[DatabaseLogRecord]:
-    return db.query(DatabaseLogRecord).all()
+    return db.query(DatabaseLogRecord).order_by(desc(DatabaseLogRecord.timestamp)).all()
+
+
+def get_logs_by_time(
+    db: Session, start_time: datetime, end_time: datetime
+) -> List[DatabaseLogRecord]:
+    return (
+        db.query(DatabaseLogRecord)
+        .filter(
+            DatabaseLogRecord.timestamp >= start_time,
+            DatabaseLogRecord.timestamp <= end_time,
+        )
+        .order_by(desc(DatabaseLogRecord.timestamp))
+        .all()
+    )
 
 
 # endregion
