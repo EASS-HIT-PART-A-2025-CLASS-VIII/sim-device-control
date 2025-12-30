@@ -37,6 +37,7 @@ Project folder layout:
 **Docker**
 
 Make sure to configure environment variables in EVERY SINGLE component of this project (the default values in the `.env.example` are suitable for a localized execution).
+
 To make things simple you can run the following command to copy all `.env.example` files and create brand new `.env` files:
 
 ```bash
@@ -61,6 +62,7 @@ docker compose up --build
 
 The backend is available at:
 `http://localhost:8000/docs#`
+
 The frontend is available at:
 `http://localhost:5173/`
 
