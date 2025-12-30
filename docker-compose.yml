@@ -25,6 +25,25 @@ services:
       retries: 5
       start_period: 30s
       
+  mqtt:
+    image: eclipse-mosquitto:2
+    container_name: sim-device-mqtt
+    restart: unless-stopped
+    ports:
+      - "1883:1883"
+    volumes:
+      - ./mosquitto.conf:/mosquitto/config/mosquitto.conf
+      - mosquitto_data:/mosquitto/data
+      - mosquitto_log:/mosquitto/log
+    networks:
+      - sim-device-net
+    healthcheck:
+      test: ["CMD-SHELL", "mosquitto_pub -h localhost -p 1883 -t healthcheck -m ok -q 0"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
   backend:
     build: ./backend
     container_name: sim-device-backend
@@ -36,6 +55,8 @@ services:
       - sim-device-net
     depends_on:
       db:
+        condition: service_healthy
+      mqtt:
         condition: service_healthy
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request,sys; urllib.request.urlopen('http://localhost:8000/health'); sys.exit(0)"]
@@ -57,6 +78,8 @@ services:
       
 volumes:
   sim_device_data:
+  mosquitto_data:
+  mosquitto_log:
 
 networks:
   sim-device-net:
