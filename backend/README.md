@@ -57,20 +57,16 @@ pip install -r requirements.txt
 
 Configure environment variables:
 
-```bash
-cp .env.example .env
-```
-
 Edit `.env`.
 set your Database user and password:
 
-```
+```bash
 DATABASE_USER="example_user"
 DATABASE_PASSWORD="example_password"
 ```
 set your MQTT broker and port:
 
-```
+```bash
 MQTT_BROKER="example_broker"
 MQTT_PORT=1883
 ```

@@ -33,17 +33,11 @@ sim-device/
 
 ## Configuration
 
-The app reads environment variables (via `.env` if present):
-
-Configure environment variables (make sure the MQTT variables match with the backend's variables or else you won't be able to connect):
-
-```bash
-cp .env.example .env
-```
+Configure environment variables int the `.env` file (make sure the MQTT variables match with the backend's variables or else you won't be able to connect):
 
 - `DEVICE_TYPE`: device type (e.g., `temperature_sensor`, `humidity_sensor`, `pressure_sensor`, `dc_motor`, `stepper_motor`)
 - `DEVICE_ID`: unique identifier for this simulated device
-- `MQTT_BROKER`: broker host or IP (e.g., `localhost`, `mqtt`, `broker.hivemq.com`)
+- `MQTT_BROKER`: broker host or IP (e.g., `127.0.0.1`, `mqtt`, `broker.hivemq.com`)
 - `MQTT_PORT`: broker port (e.g., `1883`)
 
 The app reads the configuration file `device_info.json`:

@@ -11,7 +11,7 @@ As of now the project contains:
 - MySQL Database that saves logs and devices
 - Rust based device simulation via MQTT
 
-Project folders layout:
+Project folder layout:
 
 ```
 .
@@ -36,12 +36,14 @@ Project folders layout:
 
 **Docker**
 
-Make sure to configure environment variables in EVERY SINGLE component of this project.
-For the Database, configure these environment variables (make sure they match with the backend's variable or else you won't be able to connect or run the project)
+Make sure to configure environment variables in EVERY SINGLE component of this project (the default values in the `.env.example` are suitable for a localized execution).
+To make things simple you can run the following command to copy all `.env.example` files and create brand new `.env` files:
 
 ```bash
-cp .env.example .env
+find . -type f -name ".env.example" -execdir cp .env.example .env \;
 ```
+
+For the Database, configure these environment variables (make sure they match with the backend's variable or else you won't be able to connect or run the project)
 
 Edit `.env` and set your Database user and password:
 
@@ -51,14 +53,26 @@ DB_USER=example_user
 DB_PASSWORD=example_password
 ```
 
-In order to run the project as a whole run the docker-compose.yml file:
+In order to run the project as a whole run the `docker-compose.yml` file (add the `-d` flag if you don't need to see terminal logging):
 
 ```bash
 docker compose up --build
 ```
-After running the docker compose file, in order to add/remove devices you must run the sim-device, visit sim-device/README.md to learn how to connect and disconnect devices
+
+The backend is available at:
+`http://localhost:8000/docs#`
+The frontend is available at:
+`http://localhost:5173/`
+
+After running the docker compose file and making sure everything runs properly, in order to add devices, run the `docker-compose.device.yml` file (add the `-d` flag if you don't need to see terminal logging):
+
+```bash
+docker compose -f docker-compose.devices.yml up --build
+```
+
+You should now see a a new device for each device type in the frontend, feel free to change `docker-compose.device.yml` to run your very own device simulation configuration (for example, 5 unique temperature sensors or 2 of each device type).
 
 If you need to run a specific component of the project, visit its directory and follow its README.md file
 
-## TODO
-- Create a dockerized MQTT broker
+## TODO (Low priority)
+- Add digital_io and analog_io as device types.
