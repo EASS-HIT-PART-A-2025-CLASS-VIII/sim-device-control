@@ -23,16 +23,11 @@ impl StepperMotor {
                 return Some(self.speed.to_string());
             }
             "set_speed" => {
-                println!("Setting speed to {} %...", parameter);
+                println!("Setting speed to {} steps/second...", parameter);
                 if let Ok(set_speed) = parameter.parse::<f64>() {
-                    if set_speed >= 0.0 && set_speed <= 100.0 {
-                        self.speed = set_speed;
-                        println!("Speed set to {:.2} steps/second", self.speed);
-                        return Some(self.speed.to_string());
-                    } else {
-                        println!("Invalid speed value: {}", parameter);
-                        return None;
-                    }
+                    self.speed = set_speed;
+                    println!("Speed set to {:.2} steps/second", self.speed);
+                    return Some(self.speed.to_string());
                 } else {
                     println!("Invalid speed parameter: {}", parameter);
                     return None;
